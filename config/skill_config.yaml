@@ -1,0 +1,50 @@
+skill_name: "xxx"
+version: "0.1.0"
+scope: "科研课题申请书生成（重点研发/国自然/省基金）"
+
+# === 输入层 ===
+required:
+  content_ref: "内容参考文件路径或文本（课题大纲）"
+
+optional:
+  format_ref: "格式参考文件路径或文本（指南模板）"
+  doc_type: "key_rnd_project"
+    # 内置模板候选：
+    # - key_rnd_project: 国家重点研发计划课题申请书
+    # - nsfc_general: 国自然面上项目
+    # - nsfc_youth: 国自然青年基金
+    # - provincial_key: 省级重点研发计划
+    # - enterprise_rnd: 企业技术研发项目申请书
+
+# === 运行模式 ===
+mode: "heavy"
+  # heavy: 完整5层流水线（高质量长文档）
+  # light: 轻量单Agent快速草稿（跳过B/D，仅用A+C）
+
+# === 检索模式 ===
+research_scope: "internal_only"
+  # internal_only: 仅基于用户提供的文件和模型预训练知识。零配置，零幻觉风险。
+  # web_search: 外搜增强模式。需要为LLM配置Web Search工具（如Bing/Google API）。
+  #   若选择此项，请确保你的Agent平台已开启Function Calling能力，
+  #   并为Agent-B绑定search工具。否则Agent-B将降级为internal_only并告警。
+  # academic_db: 学术数据库模式。需要配置arXiv/知网/IEEE Xplore API Key。
+
+# === 人机协同 ===
+human_review_gates: []
+  # 默认空数组（全自动）。
+  # 可选填入: ["post_draft", "post_audit"]
+  # post_draft: 占位符草稿确认闸口（S3→S4之间）
+  # post_audit: 核查报告确认闸口（S5→S6之间）
+
+# === 质量约束 ===
+max_iterations: 3
+strictness_level: "strict"
+  # strict: 评分<75触发迭代，空泛表述零容忍
+  # normal: 评分<60触发迭代，允许少量过渡句
+  # loose: 评分<50触发迭代，以完成为优先
+citation_pool_size: 50
+
+# === 输出配置 ===
+output_formats: ["markdown", "json"]
+  # 基础输出：Markdown正文 + 结构化JSON元数据
+  # 追加 "docx" 将激活Agent-E的WordAssembler子模块
