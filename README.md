@@ -77,8 +77,6 @@ Integrator
   -> Delivery Agent
 ```
 
-旧版五角色提示词已归档在 `prompts/legacy/`，仅作历史对照，不参与主流程。
-
 ## 人工审核
 
 默认闸口：
@@ -155,8 +153,7 @@ xxx_skill/
 │   ├── full_document_ai_style_auditor.md
 │   ├── compliance_auditor.md
 │   ├── delivery_agent.md
-│   ├── human_gate.md
-│   └── legacy/
+│   └── human_gate.md
 └── schemas/
     ├── agent_result.schema.json
     ├── artifact.schema.json

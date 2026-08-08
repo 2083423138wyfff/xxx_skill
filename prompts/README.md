@@ -25,5 +25,3 @@
 
 - `common_protocol.md`
 - `agent_prompt_template.md`
-
-旧版提示词已归档到 `legacy/`，仅用于对照，不再作为新架构主流程入口。
