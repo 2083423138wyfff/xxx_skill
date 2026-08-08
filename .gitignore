@@ -1,0 +1,29 @@
+# Local planning and working notes
+修改方案.md
+修改顺序.md
+数据清洗清单.md
+
+# Local outputs and temporary workspaces
+outputs/
+final_package/
+workspace/
+tmp/
+temp/
+.cache/
+
+# Build and generated artifacts
+build/
+dist/
+*.log
+
+# Python/runtime caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

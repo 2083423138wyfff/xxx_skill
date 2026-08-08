@@ -77,10 +77,10 @@ source_aggregation_policy:
     - 知识产权规划
   conflict_resolution: 当项目申报书、课题申报书、青年科学家模板章节不同，优先匹配用户的 funding_program 和 template_type；无法判断时使用项目级共性结构，并把课题级内容作为任务分解子表。
 
-legacy_template_migration:
-  from:
-    - key_rnd_project
-    - provincial_key
+source_pattern_migration:
+  source_patterns:
+    - national_mission_rnd
+    - provincial_mission_rnd
   keep_as_conditional_rules:
     - 国内外现状可按用户资料中的研究方向、任务或技术领域动态分节。
     - 国外现状可包含代表性机构、技术特点、代表性成果、产业化状况、最新进展和趋势。
@@ -88,10 +88,10 @@ legacy_template_migration:
     - 地方项目可加入本省市产业需求、区域对比和本地单位线索。
     - 技术路线部分可包含技术领域、工艺范畴、关键技术问题、技术原理、技术方法、工艺流程、创新点和知识产权规划。
   generalization:
-    - 旧模板中的深圳城市比较改为 region_comparison，由用户申报地区决定。
-    - 旧模板中的深圳本地单位线索改为 local_partner_mapping，由用户所在地和资料决定。
-    - 旧模板中的5个子方向改为按 ContentOutline.directions 动态分节。
-    - 旧模板中的固定闭环示例只作为用户资料匹配时的表达方式，不得硬编码到所有项目。
+    - 历史规则中的固定城市比较改为 region_comparison，由用户申报地区决定。
+    - 历史规则中的固定本地单位线索改为 local_partner_mapping，由用户所在地和资料决定。
+    - 历史规则中的固定子方向改为按 ContentOutline.directions 动态分节。
+    - 历史规则中的固定闭环示例只作为用户资料匹配时的表达方式，不得硬编码到所有项目。
   rule_status: heuristic
 
 default_constraints:

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/citation_verification_report.schema.json",
+  "title": "CitationVerificationReport",
+  "type": "object",
+  "required": [
+    "artifact",
+    "overall_pass",
+    "unsupported_claims",
+    "mismatched_citations",
+    "formatting_issues",
+    "fix_commands",
+    "source_registry_updates",
+    "change_log"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "overall_pass": { "type": "boolean" },
+    "unsupported_claims": { "type": "array", "items": { "type": "object" } },
+    "mismatched_citations": { "type": "array", "items": { "type": "object" } },
+    "formatting_issues": { "type": "array", "items": { "type": "object" } },
+    "fix_commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "target", "reason"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["rerun_literature_backfill", "rerun_section_writer", "rerun_integrator", "ask_user", "block"]
+          },
+          "target": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "source_registry_updates": { "type": "array", "items": { "type": "object" } },
+    "change_log": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false
+}

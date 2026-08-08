@@ -1,92 +1,113 @@
+---
+name: xxx-skill
+description: Use when generating, auditing, and delivering Chinese research project proposals with multi-agent prompts, fixed templates, citations, AI style review, compliance audit, Markdown JSON DOCX outputs, and degradation handling.
+---
+
 # SKILL: xxx-skill
 
 ## 元数据
 
 - **skill_id**: `xxx-skill`
-- **version**: `0.1.0`
-- **scope**: 科研课题申请书智能生成（重点研发/国自然/省基金/省级/企业研发）
-- **author**: user-defined
+- **version**: `0.2.0`
+- **scope**: 科研项目申请书多 Agent 生成、审查与交付
 - **license**: MIT
 
 ## 能力声明
 
-本 Skill 通过多 Agent 流水线，将课题内容大纲与格式模板转化为高质量学术申报书文本。支持全自动模式与人工闸口模式。
+本 Skill 根据用户提供的项目标题、参考资料和可选模板，生成科研项目申请书。系统默认启用人工审核，使用多 Agent 协作完成模板解析、内容分析、大纲设计、章节写作、联网文献检索、正文整合、引用核验、全文 AI 味审查、合规审查和最终 Markdown/JSON/DOCX 交付。
 
 ## 输入契约
 
 ```yaml
 required:
-  content_ref: string          # 课题大纲文件路径或文本内容
+  project_title: string
+  reference_materials:
+    - string
 
 optional:
-  format_ref: string           # 格式模板文件路径或文本内容
-  doc_type: enum               # 内置模板选择，当 format_ref 缺失时生效
-    values: [key_rnd_project, nsfc_general, nsfc_youth, provincial_key, enterprise_rnd]
-  mode: enum                   # 运行模式
-    values: [heavy, light]
-    default: heavy
-  research_scope: enum          # 检索范围
-    values: [internal_only, web_search, academic_db]
-    default: internal_only
-  human_review_gates: array    # 人工审核闸口
-    items: {enum: [post_draft, post_audit]}
-    default: []
-  max_iterations: integer       # 最大迭代次数
-    default: 3
-  strictness_level: enum       # 核查严格度
-    values: [strict, normal, loose]
-    default: strict
-  citation_pool_size: integer   # 引用池上限
-    default: 50
-  output_formats: array         # 输出格式
-    items: {enum: [markdown, json, docx]}
+  template_ref: string
+  template_type:
+    enum:
+      - basic_research
+      - mission_rnd
+      - social_science
+      - industry_rnd
+      - platform_construction
+      - compact_proposal
+  funding_program: string
+  research_scope:
+    enum: [web_search, academic_db]
+    default: web_search
+  output_formats:
+    items:
+      enum: [markdown, json, docx]
     default: [markdown, json]
+  human_review:
+    enabled: true
+    gates:
+      - post_intake
+      - degradation_confirm
+      - post_template
+      - post_outline
+      - post_audit
+  runtime_mode:
+    enum:
+      - parallel_multi_agent
+      - sequential_multi_role
+      - single_agent_compact
+    default: parallel_multi_agent
 ```
+
+文献检索必须联网。若运行环境无法联网或没有学术数据库能力，不得生成正式参考文献。
 
 ## 输出契约
 
 ```yaml
 FinalPackage:
-  main_document_md: string      # Markdown 正文
-  metadata_json: object        # 结构化元数据（含引用统计、核查分数、迭代次数）
-  main_document_docx: string   # Word 文件（base64 或路径，可选）
-  audit_summary:
-    final_score: integer        # 百分制
-    iterations: integer
-    unresolved_issues: array
+  main_document_md: string
+  metadata_json: object
+  reference_list_json: object
+  main_document_docx: string | null
+  assumptions_md: string
+  audit_report_json: object
+  summary_md: string
+  manifest_json: object
+  status: READY_FOR_DELIVERY | DELIVERED_WITH_WARNINGS | BLOCKED
 ```
 
 ## Agent 拓扑
 
-| Agent | 角色 | 实例数 | 输入 | 输出 |
-|---|---|---|---|---|
-| Dispatcher | 调度中枢 | 1 | User Config + 各Agent输出 | 状态表 + 路由决策 |
-| Agent-A | 解析层 | 1 | content_ref, format_ref | ParsedTemplate, ContentOutline, WordBudget |
-| Agent-B | 调研层+回填层 | 1 | ContentOutline, Draft | CitationDatabase, BackfilledDocument |
-| Agent-C | 生成层 | 3（并行） | ParsedTemplate, CitationDatabase | Draft（含[Ref]占位符） |
-| Agent-D | 质控层 | 1 | BackfilledDocument, CitationDatabase, ParsedTemplate | AuditReport |
-| Agent-E | 交付层 | 1 | BackfilledDocument, AuditReport | FinalPackage |
-| HumanGate | 人机闸口 | 0~2 | Dispatcher暂停信号 | CONTINUE / REWRITE / MODIFY |
+| Agent | 职责 |
+|---|---|
+| Dispatcher | 总控调度、状态维护、回溯和降级决策 |
+| Intake Agent | 输入对齐、缺失信息识别、TaskConfig 生成 |
+| Template Analyst | 用户模板解析、内置模板匹配、TemplateProfile 生成 |
+| Content Analyst | 从用户资料提取研究问题、目标、方法、基础和指标 |
+| Outline Architect | 设计章节结构、写作分工、LogicMap、DoNotWriteList |
+| Section Writer(s) | 按章节写作正文，保留引用占位符 |
+| Literature Search Backfill | 联网检索真实文献，生成引用数据库和参考文献列表 |
+| Integrator | 整合章节、统一术语和逻辑衔接 |
+| Citation Verifier | 核验引用真实性、正文支撑关系和参考文献格式 |
+| Full Document AI Style Auditor | 审查并降低全文 AI 味，不改变事实和引用关系 |
+| Compliance Auditor | 检查模板、篇幅、必填项、LogicMap 和交付就绪度 |
+| Delivery Agent | 组装 Markdown/JSON/DOCX 交付包 |
+| Human Gate | 人工审核、降级确认、强制交付确认和取消任务记录 |
 
-## 状态机
+## 人工闸口
 
-```
-S1 PARSING → S2 RESEARCH → S3 WRITING → S4 BACKFILL → S5 AUDIT → S6 DELIVERY → S7 DONE
-```
+默认启用：
 
-闸口插入点：
-- GATE_POST_DRAFT: S3 → S4
-- GATE_POST_AUDIT: S5 → S6
+- `post_intake`
+- `degradation_confirm`
+- `post_template`
+- `post_outline`
+- `post_audit`
 
-## 依赖工具（可选）
-
-- `web_search`: Agent-B 外搜增强模式必需
-- `web_open_url`: Agent-B 文献验证推荐
-- `get_data_source`: Agent-B 学术数据库模式可选
-- `ipython`: Agent-E Word 组装可选（需文档生成库）
+用户明确关闭人工审核时，必须记录 `human_review_override`。用户取消任务时，状态为 `CANCELLED_BY_USER`。
 
 ## 内置资源
 
-- 5 套默认模板（见 `config/templates/`）
-- 3 套 JSON Schema（见 `schemas/`）
-- 7 份 Agent System Prompt（见 `prompts/`）
+- 6 个模板族，见 `config/templates/`。
+- 13 个主 Agent 提示词，见 `prompts/README.md`。
+- 公共状态协议，见 `prompts/common_protocol.md`。
+- JSON Schema，见 `schemas/`。

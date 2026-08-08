@@ -68,7 +68,7 @@ source_aggregation_policy:
   conflict_resolution: 当2026瘦身提质三段式与旧版五段式提纲冲突时，优先采用用户指定或当年申报系统模板；未指定时按三段式组织，并把旧版细项并入研究内容。
 
 subtype_guidance:
-  nsfc_general:
+  general_basic_research:
     emphasis:
       - 关键科学问题通常可设置1-3个。
       - 研究内容可按逻辑模块展开。
@@ -77,7 +77,7 @@ subtype_guidance:
       - 不把产业化状况、城市比较、本地单位线索作为硬性章节。
       - 不把工艺流程、知识产权布局写成硬性要求。
     rule_status: heuristic
-  nsfc_youth:
+  early_career_basic_research:
     emphasis:
       - 科学问题应更聚焦，通常1-2个为宜。
       - 研究内容宜控制为2-3个模块。

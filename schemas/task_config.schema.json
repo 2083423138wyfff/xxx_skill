@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/task_config.schema.json",
+  "title": "TaskConfig",
+  "type": "object",
+  "required": [
+    "artifact",
+    "project_title",
+    "reference_materials",
+    "template",
+    "research_scope",
+    "output_formats",
+    "human_review"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "project_title": { "type": "string", "minLength": 1 },
+    "reference_materials": { "type": "array", "items": { "type": "string" } },
+    "template": {
+      "type": "object",
+      "required": ["source", "template_type"],
+      "properties": {
+        "source": { "type": "string", "enum": ["user_provided", "built_in", "mixed", "unresolved"] },
+        "template_type": {
+          "type": "string",
+          "enum": [
+            "basic_research",
+            "mission_rnd",
+            "social_science",
+            "industry_rnd",
+            "platform_construction",
+            "compact_proposal",
+            "user_template",
+            "unresolved"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "research_scope": { "type": "string", "enum": ["web_search", "academic_db"] },
+    "output_formats": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["markdown", "json", "docx"] },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "human_review": {
+      "type": "object",
+      "required": ["enabled", "gates"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "gates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["post_intake", "degradation_confirm", "post_template", "post_outline", "post_audit"]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "assumptions": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

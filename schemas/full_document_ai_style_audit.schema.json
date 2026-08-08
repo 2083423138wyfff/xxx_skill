@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/full_document_ai_style_audit.schema.json",
+  "title": "FullDocumentAIStyleAudit",
+  "type": "object",
+  "required": [
+    "artifact",
+    "score",
+    "scoring_policy",
+    "rewrite_needed",
+    "revised_document",
+    "changed_facts",
+    "changed_citation_anchors",
+    "changed_section_structure",
+    "status"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "scoring_policy": {
+      "type": "object",
+      "required": ["pass_threshold", "rewrite_required_range", "unsafe_rewrite_range"],
+      "properties": {
+        "pass_threshold": { "type": "integer", "const": 80 },
+        "rewrite_required_range": { "type": "string" },
+        "unsafe_rewrite_range": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "too_generic_terms": { "type": "array", "items": { "type": "string" } },
+    "repeated_patterns": { "type": "array", "items": { "type": "string" } },
+    "vague_claims": { "type": "array", "items": { "type": "object" } },
+    "missing_project_specific_details": { "type": "array", "items": { "type": "string" } },
+    "rewrite_needed": { "type": "boolean" },
+    "revised_document": {
+      "type": "object",
+      "required": ["artifact", "draft_text", "source_integrated_draft_version"],
+      "properties": {
+        "artifact": { "$ref": "./artifact.schema.json" },
+        "draft_text": { "type": "string" },
+        "source_integrated_draft_version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "changed_facts": { "type": "boolean", "const": false },
+    "changed_citation_anchors": { "type": "boolean", "const": false },
+    "changed_section_structure": { "type": "boolean", "const": false },
+    "changes_summary": { "type": "array", "items": { "type": "object" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "change_log": { "type": "array", "items": { "type": "object" } },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": false
+}

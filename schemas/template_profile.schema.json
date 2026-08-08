@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/template_profile.schema.json",
+  "title": "TemplateProfile",
+  "type": "object",
+  "required": ["artifact", "template_id", "template_source", "sections", "format_rules", "constraints"],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "template_id": {
+      "type": "string",
+      "enum": [
+        "basic_research",
+        "mission_rnd",
+        "social_science",
+        "industry_rnd",
+        "platform_construction",
+        "compact_proposal",
+        "user_template"
+      ]
+    },
+    "template_source": { "type": "string", "enum": ["user_provided", "built_in", "mixed"] },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["section_id", "title", "required"],
+        "properties": {
+          "section_id": { "type": "string" },
+          "title": { "type": "string" },
+          "required": { "type": "boolean" },
+          "word_limit": { "type": ["integer", "null"], "minimum": 0 },
+          "required_elements": { "type": "array", "items": { "type": "string" } },
+          "rule_source": { "type": "string", "enum": ["official", "inferred", "heuristic", "user_provided"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "format_rules": {
+      "type": "object",
+      "properties": {
+        "heading_style": { "type": "string" },
+        "font": { "type": "string" },
+        "line_spacing": { "type": ["number", "null"] },
+        "citation_format": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "total_word_limit": { "type": ["integer", "null"], "minimum": 0 },
+        "total_page_limit": { "type": ["integer", "null"], "minimum": 0 },
+        "required_attachments": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "unresolved_template_questions": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

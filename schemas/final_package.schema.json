@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/final_package.schema.json",
+  "title": "FinalPackage",
+  "type": "object",
+  "required": [
+    "artifact",
+    "main_document_md",
+    "metadata_json",
+    "reference_list_json",
+    "assumptions_md",
+    "audit_report_json",
+    "summary_md",
+    "manifest_json",
+    "generated_at",
+    "task_version",
+    "status",
+    "change_log"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "main_document_md": { "type": "string" },
+    "metadata_json": { "type": "object" },
+    "reference_list_json": {
+      "type": "object",
+      "required": ["references", "citation_verification_report_id", "reference_format", "verified_only"],
+      "properties": {
+        "references": { "type": "array", "items": { "type": "object" } },
+        "citation_verification_report_id": { "type": "string" },
+        "reference_format": { "type": "string" },
+        "verified_only": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "main_document_docx": { "type": ["string", "null"] },
+    "docx_validation": {
+      "type": "object",
+      "required": ["requested", "generated", "valid", "checks", "failure_reason"],
+      "properties": {
+        "requested": { "type": "boolean" },
+        "generated": { "type": "boolean" },
+        "valid": { "type": "boolean" },
+        "checks": { "type": "object" },
+        "failure_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "assumptions_md": { "type": "string" },
+    "audit_report_json": { "type": "object" },
+    "summary_md": { "type": "string" },
+    "manifest_json": {
+      "type": "object",
+      "required": ["task_version", "generated_at", "unsupported_formats", "files"],
+      "properties": {
+        "task_version": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "unsupported_formats": { "type": "array", "items": { "type": "object" } },
+        "files": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "task_version": { "type": "string" },
+    "status": { "type": "string", "enum": ["READY_FOR_DELIVERY", "DELIVERED_WITH_WARNINGS", "BLOCKED"] },
+    "change_log": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false
+}

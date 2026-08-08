@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/agent_result.schema.json",
+  "title": "AgentResult",
+  "type": "object",
+  "required": [
+    "agent_name",
+    "run_id",
+    "stage",
+    "status",
+    "progress",
+    "artifact_updates",
+    "missing_items",
+    "issues",
+    "questions_for_user",
+    "next_action",
+    "depends_on",
+    "retry",
+    "timestamp"
+  ],
+  "properties": {
+    "agent_name": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "stage": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "NEED_USER_INPUT", "NEED_REVISION", "BLOCKED", "FAILED"]
+    },
+    "progress": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "artifact_updates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact_id", "artifact_type", "version", "valid"],
+        "properties": {
+          "artifact_id": { "type": "string" },
+          "artifact_type": { "type": "string" },
+          "version": { "type": "string" },
+          "valid": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "missing_items": { "type": "array", "items": { "type": "string" } },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["issue_id", "severity", "description", "location"],
+        "properties": {
+          "issue_id": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "description": { "type": "string" },
+          "location": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "questions_for_user": { "type": "array", "items": { "type": "string" } },
+    "next_action": {
+      "type": "object",
+      "required": ["type", "target_agent"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["continue", "ask_user", "retry", "rerun_upstream", "block", "deliver"]
+        },
+        "target_agent": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "depends_on": { "type": "array", "items": { "type": "string" } },
+    "retry": {
+      "type": "object",
+      "required": ["allowed", "count", "max"],
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "count": { "type": "integer", "minimum": 0 },
+        "max": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
