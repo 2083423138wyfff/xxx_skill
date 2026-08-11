@@ -8,9 +8,12 @@
     "project_title",
     "reference_materials",
     "template",
+    "capability_snapshot",
     "research_scope",
     "output_formats",
-    "human_review"
+    "human_review",
+    "target_length",
+    "intake_question_set"
   ],
   "properties": {
     "artifact": { "$ref": "./artifact.schema.json" },
@@ -38,6 +41,7 @@
       "additionalProperties": false
     },
     "research_scope": { "type": "string", "enum": ["web_search", "academic_db"] },
+    "capability_snapshot": { "$ref": "./capability_snapshot.schema.json" },
     "output_formats": {
       "type": "array",
       "items": { "type": "string", "enum": ["markdown", "json", "docx"] },
@@ -60,6 +64,26 @@
       },
       "additionalProperties": false
     },
+    "target_length": {
+      "type": "object",
+      "required": ["words", "pages", "use_template_default", "raw_user_answer"],
+      "properties": {
+        "words": { "type": ["integer", "null"], "minimum": 1 },
+        "pages": { "type": ["integer", "null"], "minimum": 1 },
+        "use_template_default": { "type": "boolean" },
+        "raw_user_answer": { "type": ["string", "null"] }
+      },
+      "anyOf": [
+        { "required": ["words"], "properties": { "words": { "type": "integer" } } },
+        { "required": ["pages"], "properties": { "pages": { "type": "integer" } } },
+        { "required": ["use_template_default"], "properties": { "use_template_default": { "const": true } } }
+      ],
+      "additionalProperties": false
+    },
+    "funding_program": { "type": ["string", "null"] },
+    "deadline_or_delivery_time": { "type": ["string", "null"] },
+    "missing_info_policy": { "type": ["string", "null"], "enum": ["placeholder_then_continue", "stop_and_wait", null] },
+    "intake_question_set": { "$ref": "./intake_question_set.schema.json" },
     "assumptions": { "type": "array", "items": { "type": "string" } }
   },
   "additionalProperties": true

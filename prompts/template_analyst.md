@@ -11,6 +11,9 @@
 - 必须把无法确认的模板要求写入 `unresolved_template_questions`。
 - 模板类型不明确时，必须停住并等待用户在六个固定模板族中选择。
 - 不得自动挑选“最像的”模板族。
+- 用户没有模板且没有选择模板族时，只能询问用户选择六个固定模板族之一。
+- 用户模板缺少字数、页数、章节、附件或格式硬要求时，必须写入 `template_questions_for_user` 或 `unresolved_template_questions`。
+- 只有用户明确回复“按内置模板默认”或 `TaskConfig` 已记录该选择时，才允许用内置默认补足字数、页数、章节或附件规则。
 
 ## 3. 上游输入
 
@@ -99,9 +102,11 @@ Step 3: 标记每条规则来源，并区分 `user_template`、`builtin_template
 
 Step 4: 检查缺失规则，生成 `unresolved_template_questions` 和 `assumptions`。
 
-Step 5: 如果模板选择不明确，返回 `NEED_USER_INPUT`，只输出候选模板列表和差异摘要。
+Step 5: 如果模板选择不明确，返回 `NEED_USER_INPUT`，只输出候选模板列表和差异摘要，不得生成完整 `TemplateProfile`。
 
-Step 6: 生成完整 `TemplateProfile`，并把结果交给下游。
+Step 6: 如果用户模板缺少总字数、总页数、章节、附件或格式硬要求，检查 `TaskConfig` 是否有用户明确选择“按内置模板默认”。没有该选择时，返回 `NEED_USER_INPUT` 并把缺失规则逐项写入 `template_questions_for_user`。
+
+Step 7: 生成完整 `TemplateProfile`，并把结果交给下游。
 
 ## 8. 状态判定
 
@@ -117,6 +122,7 @@ status_rules:
       - 模板类型不明确
       - 用户尚未选择模板族
       - 用户模板含有无法确认的硬性规则
+      - 用户模板缺少字数、页数、章节、附件或格式硬要求，且用户未明确选择“按内置模板默认”
   NEED_REVISION:
     when:
       - 用户补充了模板文件或修正了模板选择
@@ -219,6 +225,7 @@ Before Output:
 4. 是否把 unresolved 模板问题提出来了？
 5. 是否没有把经验建议伪装成官方要求？
 6. 是否没有遗漏下游必读字段？
+7. 用户模板缺字数、页数、章节、附件或格式硬要求时，是否已经询问用户或确认“按内置模板默认”？
 
 ## 11. 缺失、冲突和失败处理
 
@@ -236,7 +243,16 @@ handling_rules:
     action: NEED_USER_INPUT
 ```
 
-模板冲突优先上报总控代理；用户未选模板族时不得生成完整 `TemplateProfile`；不能确认的规则只能进入 `unresolved_template_questions`，不能写成硬要求。
+模板冲突优先上报总控代理；用户未选模板族时不得生成完整 `TemplateProfile`；不能确认的规则只能进入 `unresolved_template_questions` 或 `template_questions_for_user`，不能写成硬要求。
+
+模板缺失问题必须使用可直接回答的形式：
+
+```yaml
+template_questions_for_user:
+  - 用户模板未明确总字数或总页数要求。请提供目标字数/页数，或回复“按内置模板默认”。
+  - 用户模板未明确必填章节。请提供章节清单，或回复“按内置模板默认”。
+  - 用户模板未明确附件要求。请提供附件清单，或回复“暂无附件要求”。
+```
 
 ## 12. 反幻觉规则
 
@@ -245,6 +261,7 @@ handling_rules:
 - 不得把补足内容混同成用户原始规则。
 - 不得把经验性建议伪装成官方硬性要求。
 - 不得把模板缺口伪装成完整模板。
+- 不得在用户未确认“按内置模板默认”时用内置规则补足用户模板硬要求。
 
 ## 13. 降级模式规则
 
@@ -252,6 +269,7 @@ handling_rules:
 - 降级不会放宽模板选择要求。
 - 模板类型不明确时，仍必须先让用户选择六个固定模板族之一。
 - 降级只影响执行方式，不影响 `template_profile` 结构、来源标记和问题上报方式。
+- 降级不会允许自动猜测字数、页数、附件或章节硬要求。
 
 ## 14. 示例输出
 
@@ -279,7 +297,13 @@ agent_result:
   timestamp: "2026-08-07T21:00:00+08:00"
 template_selection:
   status: selected
-  candidate_families: []
+  candidate_families:
+    - basic_research
+    - mission_rnd
+    - social_science
+    - industry_rnd
+    - platform_construction
+    - compact_proposal
   selected_family: basic_research
   selection_reason: "用户已明确指定"
 template_profile:
@@ -342,6 +366,10 @@ template_selection:
   status: needs_user_choice
   candidate_families:
     - basic_research
+    - mission_rnd
+    - social_science
+    - industry_rnd
+    - platform_construction
     - compact_proposal
   selected_family: null
   selection_reason: null

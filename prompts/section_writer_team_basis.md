@@ -275,7 +275,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请提供团队基础事实，包括负责人背景、已有成果、项目经验、平台条件或合作基础；如果暂无，请回复“暂无团队基础”。
   next_action:
     type: continue
     target_agent: Integrator
@@ -342,7 +343,8 @@ agent_result:
       severity: high
       description: 本章节核心团队基础事实缺失，无法继续写作。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请提供团队基础事实，包括负责人背景、已有成果、项目经验、平台条件或合作基础；如果暂无，请回复“暂无团队基础”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

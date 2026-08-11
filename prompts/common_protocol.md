@@ -12,6 +12,43 @@
 - AI 味审查不允许跳过。
 - 用户在降级确认或人工审核节点取消任务时，进入 `CANCELLED_BY_USER`，不得继续写作、检索或交付。
 
+## 运行能力验证
+
+`capability_snapshot` 必须来自宿主 SDK、runtime 或真实工具调用证据，不得来自模型自我判断。
+
+```yaml
+capability_snapshot:
+  multi_agent_supported: true | false
+  parallel_supported: true | false
+  web_search_supported: true | false
+  docx_supported: true | false
+  human_pause_resume_supported: true | false
+  degradation_required: true | false
+  degradation_reason: string | null
+  subagent_probe:
+    required: true
+    attempted: true | false
+    passed: true | false
+    method: host_subagent_call | sdk_capability_flag | unavailable
+    evidence:
+      - agent_name: string
+        run_id: string
+        independent_context: true | false
+        returned_agent_result: true | false
+    failure_reason: string | null
+  confidence: verified | assumed_false | unsupported
+```
+
+硬规则：
+
+- 只有 `subagent_probe.passed: true` 且至少一条 `evidence.returned_agent_result: true`、`evidence.independent_context: true` 时，才允许 `multi_agent_supported: true`。
+- 只有宿主明确支持并行子代理调度，且多 Agent 探针通过时，才允许 `parallel_supported: true`。
+- 模型声称“我可以模拟多个角色”、同一上下文内角色扮演、顺序执行多个 prompt、或单 Agent 自我分工，都必须判定为 `multi_agent_supported: false`。
+- 没有宿主能力声明、没有真实探针、探针失败、探针无法执行、或证据不完整时，默认 `multi_agent_supported: false`、`confidence: assumed_false`。
+- `multi_agent_supported: true` 与 `subagent_probe.passed: false` 不得同时出现。
+- `single_agent_compact` 是降级模式，不是多 Agent 支持证据。
+- 联网检索和 DOCX 能力也必须来自宿主工具或 runtime 能力，不能由模型记忆或自然语言承诺替代。
+
 ## Agent 状态外壳
 
 所有代理返回统一 `agent_result`：
@@ -59,6 +96,68 @@ agent_result:
 - `CANCELLED_BY_USER`：仅由总控代理设置，表示用户取消任务，不表示代理失败。
 
 所有 `questions_for_user` 必须交给总控代理统一合并后询问用户。
+
+`NEED_USER_INPUT` 硬规则：
+
+- 任一代理返回 `status: NEED_USER_INPUT` 时，`questions_for_user` 至少包含 1 条可直接回答的问题。
+- `missing_items` 中每一项必须映射到一个 `questions_for_user` 或对应的问题组。
+- 禁止只输出“请补充资料”“信息不足”等泛化问题。
+- 用户问题必须交给总控代理，但子代理必须给出完整问题文本，不得只给缺失项 ID。
+
+## 启动问题完整性
+
+输入对齐阶段必须维护固定问题集：
+
+```yaml
+intake_required_question_set:
+  - question_id: project_title
+    required: true
+  - question_id: research_theme
+    required: true
+  - question_id: reference_materials_status
+    required: true
+  - question_id: template_source
+    required: true
+  - question_id: template_family_selection
+    required: true
+  - question_id: funding_program
+    required: true
+  - question_id: target_length
+    required: true
+  - question_id: output_formats
+    required: true
+  - question_id: docx_required
+    required: true
+  - question_id: web_search_permission
+    required: true
+  - question_id: human_review_setting
+    required: true
+  - question_id: deadline_or_delivery_time
+    required: true
+  - question_id: missing_info_policy
+    required: true
+```
+
+完整性规则：
+
+- 第一轮输入对齐必须覆盖全部 `intake_required_question_set`，除非用户输入中已经明确回答某项。
+- 对已回答项写入 `answered_question_ids`，未回答项写入 `pending_question_ids`。
+- `pending_question_ids` 非空时，不得进入正文写作、文献检索、审查或交付。
+- `template_family_selection` 未确认时，不得自动选择模板族。
+- `target_length` 未确认且模板无明确默认值时，不得进入大纲设计；用户明确回复“按模板默认”是合法回答，必须写入 `assumptions`。
+- `web_search_permission` 未确认时，不得进入正式文献检索；未联网时不得生成正式参考文献。
+- 用户未显式确认降级、联网、关闭人工审核或强制交付时，不得把沉默解释为同意。
+
+总控代理必须输出：
+
+```yaml
+question_completeness_check:
+  required_question_ids: []
+  answered_question_ids: []
+  pending_question_ids: []
+  missing_item_question_map: []
+  can_continue: true | false
+```
 
 ## 产物元数据
 

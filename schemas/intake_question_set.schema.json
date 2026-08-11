@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/intake_question_set.schema.json",
+  "title": "IntakeQuestionSet",
+  "type": "object",
+  "required": ["required_question_ids", "answered_question_ids", "pending_question_ids"],
+  "properties": {
+    "required_question_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
+      "minItems": 13,
+      "uniqueItems": true
+    },
+    "answered_question_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
+      "uniqueItems": true
+    },
+    "pending_question_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "question_id": {
+      "type": "string",
+      "enum": [
+        "project_title",
+        "research_theme",
+        "reference_materials_status",
+        "template_source",
+        "template_family_selection",
+        "funding_program",
+        "target_length",
+        "output_formats",
+        "docx_required",
+        "web_search_permission",
+        "human_review_setting",
+        "deadline_or_delivery_time",
+        "missing_info_policy"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

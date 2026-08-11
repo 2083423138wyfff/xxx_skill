@@ -277,7 +277,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请确认本研究现状章节的研究边界、技术领域或比较范围；如果按现有资料无法确认，请回复“研究边界待补充”。
   next_action:
     type: continue
     target_agent: Integrator
@@ -344,7 +345,8 @@ agent_result:
       severity: high
       description: 本章节的研究边界不足，无法继续扩展现有不足分析。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请确认本研究现状章节的研究边界、技术领域或比较范围；如果按现有资料无法确认，请回复“研究边界待补充”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

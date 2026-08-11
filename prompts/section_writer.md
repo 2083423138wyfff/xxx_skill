@@ -286,7 +286,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请提供本章节必须使用的核心事实或资料来源；如果暂无，请回复“暂无核心事实，按缺失处理”。
   next_action:
     type: continue
     target_agent: Integrator
@@ -343,7 +344,8 @@ agent_result:
       severity: high
       description: 本章节核心团队基础事实缺失，无法继续写作。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请提供本章节必须使用的核心事实或资料来源；如果暂无，请回复“暂无核心事实，按缺失处理”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

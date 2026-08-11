@@ -275,7 +275,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请提供预期成果或考核指标的名称、数量、验收口径；如果暂无，请回复“暂无明确成果指标，先占位”。
   next_action:
     type: continue
     target_agent: Integrator
@@ -342,7 +343,8 @@ agent_result:
       severity: high
       description: 本章节的成果指标缺少可核验口径，无法继续写作。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请提供预期成果或考核指标的名称、数量、验收口径；如果暂无，请回复“暂无明确成果指标，先占位”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

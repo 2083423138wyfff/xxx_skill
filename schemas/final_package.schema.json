@@ -8,6 +8,8 @@
     "main_document_md",
     "metadata_json",
     "reference_list_json",
+    "docx_validation",
+    "markdown_style_validation",
     "assumptions_md",
     "audit_report_json",
     "summary_md",
@@ -42,6 +44,35 @@
         "valid": { "type": "boolean" },
         "checks": { "type": "object" },
         "failure_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "markdown_style_validation": {
+      "type": "object",
+      "required": ["valid", "checks", "cleaned_items"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "checks": {
+          "type": "object",
+          "required": [
+            "horizontal_rules",
+            "italic_markers",
+            "colored_text",
+            "raw_html_or_css",
+            "diagrams",
+            "markdown_links_or_bare_urls"
+          ],
+          "properties": {
+            "horizontal_rules": { "type": "string", "enum": ["pass", "warning", "fail"] },
+            "italic_markers": { "type": "string", "enum": ["pass", "warning", "fail"] },
+            "colored_text": { "type": "string", "enum": ["pass", "warning", "fail"] },
+            "raw_html_or_css": { "type": "string", "enum": ["pass", "warning", "fail"] },
+            "diagrams": { "type": "string", "enum": ["pass", "warning", "fail"] },
+            "markdown_links_or_bare_urls": { "type": "string", "enum": ["pass", "warning", "fail"] }
+          },
+          "additionalProperties": false
+        },
+        "cleaned_items": { "type": "array", "items": { "type": "object" } }
       },
       "additionalProperties": false
     },

@@ -277,7 +277,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请提供技术路线、关键方法或实施步骤；如果尚未确定，请回复“技术路线待补充”。
   next_action:
     type: continue
     target_agent: Integrator
@@ -344,7 +345,8 @@ agent_result:
       severity: high
       description: 本章节技术路线存在歧义，无法继续展开关键路径。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请提供技术路线、关键方法或实施步骤；如果尚未确定，请回复“技术路线待补充”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

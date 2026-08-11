@@ -16,6 +16,25 @@ description: Use when generating, auditing, and delivering Chinese research proj
 
 本 Skill 根据用户提供的项目标题、参考资料和可选模板，生成科研项目申请书。系统默认启用人工审核，使用多 Agent 协作完成模板解析、内容分析、大纲设计、章节写作、联网文献检索、正文整合、引用核验、全文 AI 味审查、合规审查和最终 Markdown/JSON/DOCX 交付。
 
+## 运行入口硬规则
+
+使用本 Skill 时必须先读取并遵守 `prompts/common_protocol.md` 和 `prompts/dispatcher.md`，不得直接进入写作、检索、审查或交付。
+
+启动顺序固定为：
+
+1. 输出欢迎语。
+2. 执行运行能力自测，生成 `capability_snapshot`。
+3. 用真实宿主 subagent 调用证据验证多 Agent 支持。
+4. 如多 Agent 不支持，必须先让用户选择：`1` 接受降级，或 `2` 取消任务。
+5. 用户接受降级后，或多 Agent 验证通过后，进入完整输入对齐。
+6. 第一轮输入对齐必须覆盖固定 13 个问题，尤其必须询问目标字数或页数、模板来源、模板族、输出格式、联网检索、人工审核和缺失信息处理方式。
+
+能力判断不得依赖模型自称、角色扮演、单上下文多角色模拟或顺序 prompt 执行。只有 `subagent_probe.passed: true`，且证据中存在独立子代理 `agent_result`、独立 `run_id`、`independent_context: true` 和 `returned_agent_result: true` 时，才允许写 `multi_agent_supported: true`。
+
+任一代理返回 `NEED_USER_INPUT` 时，`questions_for_user` 必须非空，并且每个 `missing_items` 必须映射到可直接回答的问题。不得输出空问题后继续流程。
+
+文献检索必须联网；若运行环境无法联网，不得生成正式参考文献，不得跳过引用核验、全文 AI 味审查、合规审查或交付检查。
+
 ## 输入契约
 
 ```yaml

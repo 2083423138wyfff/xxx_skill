@@ -10,6 +10,8 @@
 - 默认启用人工审核。
 - 所有闸口只能由总控代理触发。
 - SDK 不支持多 Agent 时，必须通过 `degradation_confirm` 闸口让用户选择接受降级或取消任务，该闸口不可跳过。
+- `degradation_confirm` 闸口只能接受 `1` 或 `2`：`1` 表示接受降级，`2` 表示取消任务。
+- `degradation_confirm` 闸口不得混入模板选择、资料上传、字数页数或其他 Intake 问题。
 - 不得擅自推进流程。
 - 用户选择 `ABORT` 或取消任务时，必须回传 `CANCELLED_BY_USER`。
 - 用户明确关闭人工审核时，必须记录 `human_review_override`，并保留风险说明和批准版本。
@@ -89,6 +91,7 @@ Preflight Check:
 5. 检查用户决策是否明确。
 6. 检查 `ABORT` 是否被记录为取消而不是通过。
 7. 检查 `degradation_confirm`、强制交付和关闭人工审核是否有独立结构化字段。
+8. 如果当前闸口是 `degradation_confirm`，检查用户回复是否严格为 `1` 或 `2`。
 
 用户决策不明确时，不得输出通过。
 
@@ -111,12 +114,12 @@ Step 2: 读取 `target_artifact`，整理 `gate_brief` 和 `display_items`。
 Step 3: 按闸口类型展示对应重点：
 
 - `post_intake`：展示缺失项、假设、输出格式和人工审核设置。
-- `degradation_confirm`：展示当前环境能力缺口、多 Agent 降级影响、token 消耗提示，并要求用户明确选择接受降级或取消任务。
+- `degradation_confirm`：展示当前环境能力缺口、多 Agent 降级影响、token 消耗提示，并要求用户本轮只回复数字 `1` 或 `2`。本闸口不得询问资料、模板、字数、页数、输出格式或其他 Intake 问题。
 - `post_template`：展示模板选择、模板来源、补足来源和未解决模板问题。
 - `post_outline`：展示章节结构、写作分工、逻辑闭环和禁写清单。
 - `post_audit`：展示合规审查结果、AI 味审查结果、引用核验结果、未解决问题和是否强制交付；若用户要求强制交付，必须生成 `force_delivery_approval`。
 
-Step 4: 收集用户决策，只允许 `CONTINUE`、`MODIFY` 或 `ABORT`；`degradation_confirm` 的接受降级、`post_audit` 的强制交付和关闭人工审核必须写入对应结构化字段。
+Step 4: 收集用户决策。普通闸口只允许 `CONTINUE`、`MODIFY` 或 `ABORT`；`degradation_confirm` 只允许用户回复 `1` 或 `2`，其中 `1` 映射为接受降级并继续到完整 Intake 问题清单，`2` 映射为 `ABORT` 和 `CANCELLED_BY_USER`。`post_audit` 的强制交付和关闭人工审核必须写入对应结构化字段。
 
 Step 5: 生成 `approval`，记录批准对象、版本、用户备注和时间。
 
@@ -136,6 +139,7 @@ status_rules:
     when:
       - 用户尚未给出明确决策
       - 用户备注无法判断为 CONTINUE、MODIFY 或 ABORT
+      - `degradation_confirm` 闸口用户回复不是 1 或 2
   NEED_REVISION:
     when:
       - 用户选择 MODIFY
@@ -251,6 +255,8 @@ Before Output:
 8. 是否在 `degradation_confirm` 闸口展示了多 Agent 能力要求和 token 消耗提示？
 9. 是否把强制交付批准写入 `force_delivery_approval`？
 10. 是否把关闭人工审核写入 `human_review_override`？
+11. `degradation_confirm` 是否没有混入 Intake 信息收集？
+12. `degradation_confirm` 是否只接受了 1 或 2？
 
 自检失败时不得返回 `SUCCESS`。
 
@@ -276,6 +282,8 @@ handling_rules:
     action: cancel_task
   degradation_not_confirmed:
     action: ask_user
+  degradation_invalid_choice:
+    action: ask_user
   force_delivery_requested:
     action: return_approval
   human_review_disable_requested:
@@ -298,6 +306,7 @@ handling_rules:
 - 降级不会允许跳过 `post_intake`、`post_template`、`post_outline` 或 `post_audit`。
 - 降级不会允许没有用户决策就继续。
 - 降级只改变执行方式，不改变 `approval` 结构。
+- 降级确认通过后，下一轮必须进入完整 Intake 问题清单。
 
 ## 14. 示例输出
 

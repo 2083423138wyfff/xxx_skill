@@ -1,5 +1,8 @@
 # xxx-skill
 
+配合 Kimi 使用效果更佳。
+Works best with Kimi, especially in environments with real multi-agent support.
+
 科研项目申请书多 Agent 生成 skill。  
 Multi-agent skill for Chinese research proposal drafting, review, and delivery.
 
@@ -190,6 +193,8 @@ xxx_skill/
 └── schemas/
     ├── agent_result.schema.json
     ├── artifact.schema.json
+    ├── capability_snapshot.schema.json
+    ├── intake_question_set.schema.json
     ├── task_config.schema.json
     ├── template_profile.schema.json
     ├── citation_verification_report.schema.json

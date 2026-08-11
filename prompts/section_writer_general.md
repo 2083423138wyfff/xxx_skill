@@ -275,7 +275,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 请确认该综合章节的边界和用途，是否作为兜底章节承接未归类内容；请回复“是/否”并说明范围。
   next_action:
     type: continue
     target_agent: Integrator
@@ -342,7 +343,8 @@ agent_result:
       severity: high
       description: 该综合章节的边界不明确，需要用户确认是否属于兜底章节。
       location: section_draft.draft_text
-  questions_for_user: []
+  questions_for_user:
+    - 请确认该综合章节的边界和用途，是否作为兜底章节承接未归类内容；请回复“是/否”并说明范围。
   next_action:
     type: ask_user
     target_agent: Dispatcher

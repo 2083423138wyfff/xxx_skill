@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/capability_snapshot.schema.json",
+  "title": "CapabilitySnapshot",
+  "type": "object",
+  "required": [
+    "multi_agent_supported",
+    "parallel_supported",
+    "web_search_supported",
+    "docx_supported",
+    "human_pause_resume_supported",
+    "degradation_required",
+    "degradation_reason",
+    "subagent_probe",
+    "confidence"
+  ],
+  "properties": {
+    "multi_agent_supported": { "type": "boolean" },
+    "parallel_supported": { "type": "boolean" },
+    "web_search_supported": { "type": "boolean" },
+    "docx_supported": { "type": "boolean" },
+    "human_pause_resume_supported": { "type": "boolean" },
+    "degradation_required": { "type": "boolean" },
+    "degradation_reason": { "type": ["string", "null"] },
+    "subagent_probe": {
+      "type": "object",
+      "required": ["required", "attempted", "passed", "method", "evidence", "failure_reason"],
+      "properties": {
+        "required": { "const": true },
+        "attempted": { "type": "boolean" },
+        "passed": { "type": "boolean" },
+        "method": { "type": "string", "enum": ["host_subagent_call", "sdk_capability_flag", "unavailable"] },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["agent_name", "run_id", "independent_context", "returned_agent_result"],
+            "properties": {
+              "agent_name": { "type": "string", "minLength": 1 },
+              "run_id": { "type": "string", "minLength": 1 },
+              "independent_context": { "type": "boolean" },
+              "returned_agent_result": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "failure_reason": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "confidence": { "type": "string", "enum": ["verified", "assumed_false", "unsupported"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "multi_agent_supported": { "const": true } },
+        "required": ["multi_agent_supported"]
+      },
+      "then": {
+        "properties": {
+          "subagent_probe": {
+            "properties": {
+              "passed": { "const": true },
+              "evidence": {
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["agent_name", "run_id", "independent_context", "returned_agent_result"],
+                  "properties": {
+                    "agent_name": { "type": "string", "minLength": 1, "not": { "const": "Dispatcher" } },
+                    "run_id": { "type": "string", "minLength": 1 },
+                    "independent_context": { "const": true },
+                    "returned_agent_result": { "const": true }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["passed", "evidence"]
+          },
+          "confidence": { "const": "verified" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "parallel_supported": { "const": true } },
+        "required": ["parallel_supported"]
+      },
+      "then": {
+        "properties": { "multi_agent_supported": { "const": true } }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

@@ -320,7 +320,8 @@ agent_result:
   artifact_updates: []
   missing_items: []
   issues: []
-  questions_for_user: []
+  questions_for_user:
+    - 模板章节顺序与内容分析存在歧义，是否允许合并或调整章节顺序？请回复“允许调整”或“保持模板顺序”。
   next_action:
     type: continue
     target_agent: Section Writer
@@ -366,7 +367,8 @@ agent_result:
       severity: high
       description: 模板章节顺序与当前内容分析存在歧义，需要用户确认是否允许合并章节。
       location: outline_plan.sections
-  questions_for_user: []
+  questions_for_user:
+    - 模板章节顺序与内容分析存在歧义，是否允许合并或调整章节顺序？请回复“允许调整”或“保持模板顺序”。
   next_action:
     type: ask_user
     target_agent: Dispatcher

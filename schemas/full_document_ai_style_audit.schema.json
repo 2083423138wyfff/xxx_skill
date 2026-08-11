@@ -12,6 +12,7 @@
     "changed_facts",
     "changed_citation_anchors",
     "changed_section_structure",
+    "forbidden_style_markers",
     "status"
   ],
   "properties": {
@@ -31,6 +32,7 @@
     "repeated_patterns": { "type": "array", "items": { "type": "string" } },
     "vague_claims": { "type": "array", "items": { "type": "object" } },
     "missing_project_specific_details": { "type": "array", "items": { "type": "string" } },
+    "forbidden_style_markers": { "type": "array", "items": { "type": "object" } },
     "rewrite_needed": { "type": "boolean" },
     "revised_document": {
       "type": "object",
