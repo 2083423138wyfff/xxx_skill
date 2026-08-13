@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/final_file_qa_report.schema.json",
+  "title": "FinalFileQAReport",
+  "type": "object",
+  "required": [
+    "artifact",
+    "file_checks",
+    "content_consistency",
+    "docx_format_consistency",
+    "docx_render_check",
+    "json_parse_check",
+    "blocking_reasons",
+    "warnings",
+    "status"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "file_checks": { "type": "array", "items": { "type": "object" } },
+    "content_consistency": {
+      "type": "object",
+      "required": ["markdown_docx_match", "reference_list_match", "figure_prompt_match"],
+      "properties": {
+        "markdown_docx_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
+        "reference_list_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
+        "figure_prompt_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] }
+      },
+      "additionalProperties": false
+    },
+    "docx_format_consistency": {
+      "type": "object",
+      "required": [
+        "profile_id",
+        "page_setup",
+        "body_font",
+        "western_font",
+        "font_size",
+        "line_spacing",
+        "paragraph_spacing",
+        "first_line_indent",
+        "heading_styles",
+        "caption_styles",
+        "table_styles",
+        "text_color",
+        "italic",
+        "hyperlink_style",
+        "horizontal_rules"
+      ],
+      "properties": {
+        "profile_id": { "type": ["string", "null"] },
+        "page_setup": { "$ref": "#/$defs/check_result" },
+        "body_font": { "$ref": "#/$defs/check_result" },
+        "western_font": { "$ref": "#/$defs/check_result" },
+        "font_size": { "$ref": "#/$defs/check_result" },
+        "line_spacing": { "$ref": "#/$defs/check_result" },
+        "paragraph_spacing": { "$ref": "#/$defs/check_result" },
+        "first_line_indent": { "$ref": "#/$defs/check_result" },
+        "heading_styles": { "$ref": "#/$defs/check_result" },
+        "caption_styles": { "$ref": "#/$defs/check_result" },
+        "table_styles": { "$ref": "#/$defs/check_result" },
+        "text_color": { "$ref": "#/$defs/check_result" },
+        "italic": { "$ref": "#/$defs/check_result" },
+        "hyperlink_style": { "$ref": "#/$defs/check_result" },
+        "horizontal_rules": { "$ref": "#/$defs/check_result" }
+      },
+      "additionalProperties": false
+    },
+    "docx_render_check": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
+    "json_parse_check": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
+    "blocking_reasons": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "$defs": {
+    "check_result": {
+      "type": "string",
+      "enum": ["pass", "warning", "fail", "not_applicable"]
+    }
+  },
+  "additionalProperties": false
+}

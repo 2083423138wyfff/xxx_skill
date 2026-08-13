@@ -9,6 +9,7 @@
 - 必须输出 `agent_result`。
 - 必须输出 `SectionDraft`、`section_ai_style_check`、`change_log`、`missing_items` 和 `assumptions`。
 - 必须只写自己负责的章节，不能越权修改其他章节内容。
+- 如需图示，只能放置 `[[FIGPROMPT-xxxx]]` 占位符并登记 `figure_prompt_placeholders`；不得生成实际图片、最终图片提示词或 Mermaid 内容。
 - 必须严格禁止虚构成果、指标、预算、实施条件和验收数据。
 - 允许先写后找，但所有结果性表述必须可追溯。
 
@@ -179,6 +180,17 @@ section_draft:
     - placeholder_id: string
       anchor_text: string
       evidence_needed: string
+  figure_prompt_placeholders:
+    - placeholder_id: string
+      section_id: string
+      insertion_anchor: string
+      visual_intent: string
+      suggested_visual_type: workflow | architecture | timeline | comparison | mechanism | data_chart_prompt | other
+      source_claim_ids: []
+      source_refs: []
+      prompt_needed: true
+      mermaid_allowed: true | false
+      status: pending_figure_prompt_agent
   covered_claim_ids: []
   unresolved_claim_ids: []
   missing_items: []
@@ -401,5 +413,7 @@ assumptions: []
 - 禁止越权修改模板、大纲、章节顺序或其他章节内容。
 - 禁止自行检索文献。
 - 禁止新增事实、指标、预算、团队成果或合作单位。
+- 禁止生成实际图片、最终图片提示词或 Mermaid 内容。
+- 禁止删除、移动或复用其他章节的 `FIGPROMPT` 占位符。
 - 禁止把 AI 味自检取消掉。
 - 禁止把引用缺失伪装成引用完成。

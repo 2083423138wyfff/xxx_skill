@@ -20,7 +20,7 @@ avoid_when:
 parameter_override_policy:
   priority_order:
     - user_explicit_request
-    - user_template_ref
+    - user_content_template_ref
     - funding_program_notice
     - built_in_template_default
   rule: 用户在启动对齐阶段明确指定的页数、字数、章节、格式、输出格式优先于本模板默认值；如与内置默认值冲突，按用户指定执行，并在 Assumptions 和 audit_report 中记录。

@@ -30,6 +30,7 @@
     "logic_map_gaps": { "type": "array", "items": { "type": "object" } },
     "forbidden_content_found": { "type": "array", "items": { "type": "object" } },
     "forbidden_markdown_style_found": { "type": "array", "items": { "type": "object" } },
+    "figure_prompt_issues": { "type": "array", "items": { "type": "object" } },
     "unresolved_questions": { "type": "array", "items": { "type": "string" } },
     "fix_commands": {
       "type": "array",
@@ -43,6 +44,7 @@
               "rerun_template_analyst",
               "rerun_outline_architect",
               "rerun_section_writer",
+              "rerun_figure_prompt_agent",
               "rerun_integrator",
               "rerun_literature_backfill",
               "rerun_citation_verifier",

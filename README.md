@@ -6,8 +6,8 @@ Works best with Kimi, especially in environments with real multi-agent support.
 科研项目申请书多 Agent 生成 skill。  
 Multi-agent skill for Chinese research proposal drafting, review, and delivery.
 
-它面向低门槛输入场景：用户提供项目标题或研究主题、参考资料，可选提供模板；系统完成输入对齐、模板解析、内容分析、大纲设计、分章节写作、联网文献检索与回填、整合、引用核验、全文 AI 味审查、合规审查和最终交付。  
-It is built for low-friction inputs: users provide a project title or research topic, reference materials, and optionally a template; the system handles intake alignment, template analysis, content analysis, outline design, section writing, online literature search and backfill, integration, citation verification, full-document AI-style review, compliance audit, and final delivery.
+它面向低门槛输入场景：用户提供项目标题或研究主题、参考资料，可选提供模板；系统完成能力检测、输入对齐、模板解析、内容分析、大纲设计、分章节写作、图像提示词生成、联网文献检索与回填、整合、引用核验、全文 AI 味审查、合规审查、交付和最终文件 QA。
+It is built for low-friction inputs: users provide a project title or research topic, reference materials, and optionally a template; the system handles capability inspection, intake alignment, template analysis, content analysis, outline design, section writing, figure prompt generation, online literature search and backfill, integration, citation verification, full-document AI-style review, compliance audit, delivery, and final file QA.
 
 ## 核心原则 / Core Principles
 
@@ -17,6 +17,8 @@ It is built for low-friction inputs: users provide a project title or research t
   Literature search must use network access; without online or academic database access, formal references must not be generated.
 - 正式支持 Markdown、JSON、DOCX。  
   Markdown, JSON, and DOCX are the supported delivery formats.
+- 不生成实际图片；需要图示时，只在原位置输出图片生成提示词或 Mermaid 参考内容。
+  Actual images are not generated; when visuals are needed, the skill outputs image prompts or Mermaid references at the original positions.
 - Markdown 是最终交付和格式转换的唯一正文源。  
   Markdown is the single source of truth for final delivery and format conversion.
 - 不支持多 Agent 架构时，必须先让用户选择接受降级或取消任务。  
@@ -33,7 +35,8 @@ Minimal input:
 project_title: "项目标题或研究主题"
 reference_materials:
   - "./materials/project_outline.md"
-template_ref: null
+content_template_ref: null
+docx_format_template_ref: null
 template_type: null
 research_scope: web_search
 output_formats:
@@ -44,8 +47,8 @@ human_review:
   enabled: true
 ```
 
-用户提供模板时优先使用用户模板；用户模板缺少章节、字段或格式规则时，才从匹配度最高的内置模板族补足，并记录来源和假设。  
-When a user template is provided, it has priority; if it is missing sections, fields, or formatting rules, the best-matching built-in template family may be used as a fallback, and the source plus assumptions must be recorded.
+用户提供内容模板时优先使用用户内容模板；缺少章节或字段时，才从匹配度最高的内置模板族补足，并记录来源和假设。DOCX/Word 格式模板单独处理，不能和内容模板混用。
+When a user content template is provided, it has priority; if it is missing sections or fields, the best-matching built-in template family may be used as a fallback, and the source plus assumptions must be recorded. DOCX/Word format templates are handled separately and must not be mixed with content templates.
 
 ## 内置模板族 / Built-in Template Families
 
@@ -71,17 +74,20 @@ Main workflow:
 
 ```text
 Dispatcher
+  -> File Capability Inspector
   -> Intake Agent
   -> Template Analyst
   -> Content Analyst
   -> Outline Architect
   -> Section Writer(s)
+  -> Figure Prompt Agent
   -> Literature Search Backfill
   -> Integrator
   -> Citation Verifier
   -> Full Document AI Style Auditor
   -> Compliance Auditor
   -> Delivery Agent
+  -> Final File QA Agent
   -> Human Gate
 ```
 
@@ -94,6 +100,7 @@ Integrator
   -> Full Document AI Style Auditor
   -> Compliance Auditor
   -> Delivery Agent
+  -> Final File QA Agent
 ```
 
 旧版五角色提示词已删除，不参与主流程。  
@@ -166,6 +173,9 @@ xxx_skill/
 ├── SKILL.md
 ├── config/
 │   ├── skill_config.yaml
+│   ├── intake_question_protocol.md
+│   ├── docx_format_selection_protocol.md
+│   ├── builtin_docx_format_hithesis_midterm.md
 │   └── templates/
 │       ├── basic_research.md
 │       ├── mission_rnd.md
@@ -178,28 +188,35 @@ xxx_skill/
 │   ├── common_protocol.md
 │   ├── agent_prompt_template.md
 │   ├── dispatcher.md
+│   ├── file_capability_inspector.md
 │   ├── intake_agent.md
 │   ├── template_analyst.md
 │   ├── content_analyst.md
 │   ├── outline_architect.md
 │   ├── section_writer*.md
+│   ├── figure_prompt_agent.md
 │   ├── literature_search_backfill.md
 │   ├── integrator.md
 │   ├── citation_verifier.md
 │   ├── full_document_ai_style_auditor.md
 │   ├── compliance_auditor.md
 │   ├── delivery_agent.md
+│   ├── final_file_qa_agent.md
 │   └── human_gate.md
 └── schemas/
     ├── agent_result.schema.json
     ├── artifact.schema.json
     ├── capability_snapshot.schema.json
+    ├── file_capability_report.schema.json
     ├── intake_question_set.schema.json
     ├── task_config.schema.json
     ├── template_profile.schema.json
+    ├── docx_format_profile.schema.json
+    ├── figure_prompt_plan.schema.json
     ├── citation_verification_report.schema.json
     ├── full_document_ai_style_audit.schema.json
     ├── compliance_audit.schema.json
+    ├── final_file_qa_report.schema.json
     └── final_package.schema.json
 ```
 
@@ -209,6 +226,9 @@ xxx_skill/
 - [公共协议 / Common Protocol](prompts/common_protocol.md)
 - [Agent 提示词模板 / Agent Prompt Template](prompts/agent_prompt_template.md)
 - [全局配置 / Global Config](config/skill_config.yaml)
+- [首轮输入问题协议 / Intake Question Protocol](config/intake_question_protocol.md)
+- [DOCX 格式模板选择协议 / DOCX Format Selection Protocol](config/docx_format_selection_protocol.md)
+- [内置 DOCX 格式模板 / Built-in DOCX Format](config/builtin_docx_format_hithesis_midterm.md)
 
 ## License
 

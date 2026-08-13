@@ -12,8 +12,13 @@
 - 模板类型不明确时，必须停住并要求用户在六个固定模板族中选择。
 - 用户未接受必要降级时，不得继续进入后续写作链路。
 - 必须维护 `intake_required_question_set`、`answered_question_ids` 和 `pending_question_ids`。
-- 第一轮输入对齐必须覆盖固定 13 个问题；用户已明确回答的问题可以标为 answered，未回答的问题必须继续追问。
+- 必须遵守 `config/intake_question_protocol.md`：先自动抽取，后询问缺失、歧义或必须明确授权的字段。
+- 多 Agent 降级确认必须单独成轮；该轮只能要求用户回复 `1` 或 `2`，不得同时询问资料、模板、字数或格式问题。
 - 字数或页数缺失时必须询问；用户明确回复“按模板默认”才可作为合法回答并写入 `assumptions`。
+- 模板族问题必须使用中文说明 + 英文 ID，不得只输出英文枚举。
+- `deadline_or_delivery_time` 是非阻塞调度字段；抽取不到时写入 `暂无`，不得阻塞。
+- 必须告知：本 Skill 不生成实际图片，只在需要图示的位置输出图片生成提示词或 Mermaid 参考内容。
+- 必须告知：附件只接收用户提供；用户没提供时留空。表格严格按用户模板和用户数据；没有模板或数据时留空或占位。
 
 ## 3. 上游输入
 
@@ -24,8 +29,11 @@ inputs:
       required_version: latest
     - artifact_name: capability_snapshot
       required_version: current_run
+    - artifact_name: file_capability_report
+      required_version: current_run
   optional:
     - artifact_name: template_hint
+    - artifact_name: docx_format_template_hint
     - artifact_name: previous_task_state
 ```
 
@@ -33,7 +41,9 @@ inputs:
 
 - 缺少 `raw_user_input` 时返回 `NEED_USER_INPUT`。
 - 缺少 `capability_snapshot` 时返回 `BLOCKED`，并要求总控代理先补能力自测。
+- 缺少 `file_capability_report` 时返回 `BLOCKED`，并要求总控代理先执行 `File Capability Inspector`。
 - `template_hint` 缺失可以继续，但模板类型不明确时必须停住。
+- `docx_format_template_hint` 缺失可以继续，但 `docx_required = true` 时必须按 `config/docx_format_selection_protocol.md` 生成后续问题。
 - `previous_task_state` 缺失可以继续，只要当前输入足够重新构建 `TaskConfig`。
 
 ## 4. 下游消费者
@@ -50,13 +60,19 @@ downstream_consumers:
 - `project_title`
 - `research_theme`
 - `reference_materials`
-- `template_ref`
+- `content_template_ref`
+- `docx_format_template_ref`
 - `template_type`
 - `template_selection_state`
 - `execution_mode`
 - `capability_snapshot`
+- `file_capability_report`
 - `human_review`
 - `output_formats`
+- `docx_format_decision_state`
+- `image_generation_policy`
+- `attachment_policy`
+- `table_policy`
 - `assumptions`
 - `user_choices`
 - `cancellation`
@@ -71,8 +87,10 @@ downstream_consumers:
 
 - 标准化用户输入。
 - 抽取标题、主题、参考资料、模板线索、输出格式和显式约束。
+- 区分内容模板/申报指南来源与 DOCX/Word 格式模板来源。
 - 记录用户接受降级或取消任务的决定。
-- 生成第一轮完整问题清单。
+- 按 `config/intake_question_protocol.md` 生成需要用户确认的问题清单。
+- 记录图片、附件和表格默认告知。
 - 追踪已回答和未回答问题。
 - 判断任务是否可进入模板解析。
 - 生成 `TaskConfig` 和 `intake_status`。
@@ -82,6 +100,9 @@ downstream_consumers:
 
 - 解析模板细节。
 - 选择具体模板族。
+- 抽取 DOCX 字体、字号、行距、页边距或页眉页脚。
+- 决定图片插入位置。
+- 生成图片提示词或 Mermaid 内容。
 - 生成正文、事实或引用。
 - 替用户补充资料。
 - 替用户决定是否继续。
@@ -97,29 +118,31 @@ Preflight Check:
 5. 检查模板信息是否明确到足以进入 `Template Analyst`。
 6. 检查当前任务是否存在旧状态残留、取消状态或已完成状态。
 7. 检查用户是否已经明确接受降级或选择取消任务。
-8. 检查固定 13 个启动问题是否已全部回答或进入 `pending_question_ids`。
+8. 检查 `config/intake_question_protocol.md` 的必问字段、条件字段、默认告知和非阻塞字段是否已分类。
 
 任何一项未通过，都不得悄悄补全。
 
 ## 7. 执行步骤
 
-Step 1: 规范化用户输入，抽取标题、研究主题、资料引用、模板线索和输出要求。
+Step 1: 规范化用户输入，抽取标题、研究主题、资料引用、内容模板线索、DOCX 格式模板线索和输出要求。
 
-Step 2: 写入 `capability_snapshot`，判断 `execution_mode`，并把降级条件写入 `TaskConfig`。
+Step 2: 写入 `capability_snapshot` 和 `file_capability_report`，判断 `execution_mode`，并把降级条件和文件生成能力限制写入 `TaskConfig`。
 
-Step 3: 生成固定启动问题集：`project_title`、`research_theme`、`reference_materials_status`、`template_source`、`template_family_selection`、`funding_program`、`target_length`、`output_formats`、`docx_required`、`web_search_permission`、`human_review_setting`、`deadline_or_delivery_time`、`missing_info_policy`。
+Step 3: 按 `config/intake_question_protocol.md` 生成输入对齐字段集。已从用户原话、资料、文件名、模板或指南中明确抽取的字段写入 `answered_question_ids`；抽取不到、存在歧义或必须明确授权的字段写入 `pending_question_ids`。
 
-Step 4: 将用户输入中已明确回答的内容写入 `answered_question_ids`，将未回答内容写入 `pending_question_ids`。未回答项必须生成可直接回答的 `questions_for_user`。
+Step 4: 对模板族问题使用中文说明 + 英文 ID。模板族不明确时，只能让用户选择六个内置模板族之一，不得自动选择。
 
-Step 5: 区分必填、建议和可选缺失项，明确哪些是阻塞项，哪些可以进入 `assumptions`。`target_length` 的合法回答包括明确字数、明确页数、或“按模板默认”。
+Step 5: 处理 DOCX 格式模板分支。`docx_required = true` 时必须确认 `docx_format_template_source`；用户未提供 DOCX 格式模板时，必须要求总控代理展示内置格式模板摘要并询问是否同意；用户未同意前不得把内置格式写入已批准选择。
 
-Step 6: 判断模板选择状态。如果模板类型不明确，标记 `template_selection_state.status = needs_user_choice` 并停止；不得根据题目自动选择模板族。
+Step 6: 写入默认告知：人工审核默认启用；本 Skill 不生成实际图片，只输出图片生成提示词或 Mermaid 参考内容；附件只接收用户提供，未提供则留空；表格严格按用户模板和用户数据，没有模板或数据则留空或占位。
 
-Step 7: 根据缺失项和用户选择，判定 `readiness` 与 `allowed_next_actions`。`pending_question_ids` 非空时，`readiness` 只能是 `insufficient` 或 `partial`，不得是 `ready`。
+Step 7: 区分必填、条件、建议和非阻塞缺失项。`target_length` 的合法回答包括明确字数、明确页数或“按模板默认”。`deadline_or_delivery_time` 抽取不到时写入 `暂无`，不得阻塞流程。
 
-Step 8: 汇总 `questions_for_user`、`assumptions` 和 `cancellation`，并把问题交给总控代理。
+Step 8: 根据缺失项和用户选择判定 `readiness` 与 `allowed_next_actions`。阻塞性 `pending_question_ids` 非空时，`readiness` 只能是 `insufficient` 或 `partial`，不得是 `ready`。
 
-Step 9: 输出 `agent_result`、`TaskConfig`、`intake_status` 和所有必需附属字段。
+Step 9: 汇总 `questions_for_user`、`assumptions` 和 `cancellation`，并把问题交给总控代理。
+
+Step 10: 输出 `agent_result`、`TaskConfig`、`intake_status` 和所有必需附属字段。
 
 ## 8. 状态判定
 
@@ -183,7 +206,8 @@ task_config:
   reference_materials:
     - type: text | file | directory
       ref: string
-  template_ref: string | null
+  content_template_ref: string | null
+  docx_format_template_ref: string | null
   template_type: string | null
   template_choice_required: true | false
   template_selection_state:
@@ -205,10 +229,25 @@ task_config:
     human_pause_resume_supported: true | false
     degradation_required: true | false
     degradation_reason: string | null
+  file_capability_report_ref: string
   human_review:
     enabled: true
     gates: [post_intake, post_template, post_outline, post_audit]
   output_formats: [markdown, json, docx]
+  docx_format_decision_state:
+    docx_required: true | false
+    source: user_template | builtin_template | manual_user_answers | unresolved
+    user_approved_builtin_template: true | false
+    pending_questions: []
+  image_generation_policy:
+    actual_image_generation: false
+    output_mode: figure_prompts_or_mermaid_only
+  attachment_policy:
+    source: user_provided_only
+    missing_behavior: leave_blank
+  table_policy:
+    source: user_template_and_user_data_only
+    missing_behavior: leave_blank_or_placeholder
   target_length:
     words: integer | null
     pages: integer | null
@@ -238,16 +277,25 @@ intake_status:
     - project_title
     - research_theme
     - reference_materials_status
-    - template_source
+    - content_template_source
     - template_family_selection
     - funding_program
     - target_length
     - output_formats
     - docx_required
+    - docx_format_template_source
     - web_search_permission
-    - human_review_setting
-    - deadline_or_delivery_time
     - missing_info_policy
+  intake_conditional_question_set:
+    - builtin_docx_format_approval
+    - manual_docx_format_questions
+  intake_default_notice_set:
+    - human_review_setting
+    - image_generation_policy
+    - attachment_policy
+    - table_policy
+  intake_non_blocking_fields:
+    - deadline_or_delivery_time
   answered_question_ids: []
   pending_question_ids: []
   allowed_next_actions:
@@ -268,9 +316,11 @@ Before Output:
 5. 是否没有擅自替用户选择模板？
 6. 是否没有直接向用户提问？
 7. 是否没有把不确定内容写成确定事实？
-8. 是否固定 13 个启动问题都被回答或进入 `pending_question_ids`？
+8. 是否按 `config/intake_question_protocol.md` 完成自动抽取、必问字段、条件字段、默认告知和非阻塞字段分类？
 9. `pending_question_ids` 非空时是否没有返回 `SUCCESS`？
 10. 字数/页数缺失时是否已经询问，或用户明确选择“按模板默认”？
+11. `docx_required = true` 时，是否已经确认 DOCX 格式模板来源或生成对应条件问题？
+12. 是否已告知图片只输出提示词/Mermaid、附件用户提供、表格按模板和数据生成？
 
 自检失败时不得返回 `SUCCESS`。
 
@@ -301,14 +351,20 @@ startup_questions:
   project_title: 项目标题是什么？
   research_theme: 研究主题或核心方向是什么？
   reference_materials_status: 你是否已经提供参考资料？如果没有，请说明后续会提供的资料类型。
-  template_source: 你是否提供用户模板？如果提供，请说明模板位置或内容；如果没有，请选择内置模板族。
-  template_family_selection: 请在 basic_research、mission_rnd、social_science、industry_rnd、platform_construction、compact_proposal 中选择一个模板族。
+  content_template_source: 你是否提供内容模板或申报指南？如果提供，请说明模板位置或内容；如果没有，我将要求你在六个内置模板族中选择一个。
+  template_family_selection: 请在六个内置模板族中选择一个：1. 基础研究类 basic_research；2. 任务研发类 mission_rnd；3. 社科研究类 social_science；4. 产业研发类 industry_rnd；5. 平台建设类 platform_construction；6. 简版建议书 compact_proposal。
   funding_program: 申报计划、资助类型或项目类别是什么？如果暂无，请回复“暂未确定”。
   target_length: 目标字数或页数是多少？如果没有要求，请回复“按模板默认”。
   output_formats: 输出格式需要哪些：Markdown、JSON、DOCX？
   docx_required: 是否需要生成 DOCX？请回复“需要”或“不需要”。
+  docx_format_template_source: 你是否提供 DOCX/Word 格式模板？如果没有，我会先展示内置格式模板，征得你明确同意后才使用。
+  builtin_docx_format_approval: 你是否同意使用我展示的内置 DOCX 格式模板？请回复“同意”或“不同意”。
+  manual_docx_format_questions: 如果不同意内置模板且不能提供 DOCX 模板，请逐项提供字体、字号、行距、页边距、标题、表格、图题、页眉页脚等格式要求。
   web_search_permission: 是否允许联网检索正式参考文献？不允许则不能生成正式参考文献。
-  human_review_setting: 是否启用默认人工审核？默认启用；如需关闭请明确说明。
+  human_review_setting: 默认启用人工审核；如需关闭请明确说明。
+  image_generation_policy: 本流程不生成实际图片；如章节需要图示，将在对应位置输出图片生成提示词或 Mermaid 参考内容。
+  attachment_policy: 团队简历、证明材料、预算表、合作协议、成果清单等附件只接收你提供；未提供则留空。
+  table_policy: 表格严格按用户模板和用户数据生成；没有模板或数据则留空或占位，不编造表格内容。
   deadline_or_delivery_time: 截止时间或期望交付时间是什么？如果暂无，请回复“暂无”。
   missing_info_policy: 遇到缺失信息时，是先占位继续，还是停住等你补资料？
 ```
@@ -361,7 +417,8 @@ task_config:
   reference_materials:
     - type: text
       ref: user_materials_round_001
-  template_ref: null
+  content_template_ref: null
+  docx_format_template_ref: null
   template_type: basic_research
   template_choice_required: false
   template_selection_state:
@@ -413,29 +470,27 @@ intake_status:
     - project_title
     - research_theme
     - reference_materials_status
-    - template_source
+    - content_template_source
     - template_family_selection
     - funding_program
     - target_length
     - output_formats
     - docx_required
+    - docx_format_template_source
     - web_search_permission
-    - human_review_setting
-    - deadline_or_delivery_time
     - missing_info_policy
   answered_question_ids:
     - project_title
     - research_theme
     - reference_materials_status
-    - template_source
+    - content_template_source
     - template_family_selection
     - funding_program
     - target_length
     - output_formats
     - docx_required
+    - docx_format_template_source
     - web_search_permission
-    - human_review_setting
-    - deadline_or_delivery_time
     - missing_info_policy
   pending_question_ids: []
   allowed_next_actions:
@@ -488,7 +543,8 @@ task_config:
   project_title: "项目申请书"
   research_theme: null
   reference_materials: []
-  template_ref: null
+  content_template_ref: null
+  docx_format_template_ref: null
   template_type: null
   template_choice_required: true
   template_selection_state:
@@ -520,7 +576,7 @@ task_config:
     use_template_default: false
     raw_user_answer: null
   funding_program: null
-  deadline_or_delivery_time: null
+  deadline_or_delivery_time: "暂无"
   missing_info_policy: null
   research_scope: web_search
   assumptions: []
@@ -542,30 +598,28 @@ intake_status:
     - project_title
     - research_theme
     - reference_materials_status
-    - template_source
+    - content_template_source
     - template_family_selection
     - funding_program
     - target_length
     - output_formats
     - docx_required
+    - docx_format_template_source
     - web_search_permission
-    - human_review_setting
-    - deadline_or_delivery_time
     - missing_info_policy
   answered_question_ids:
     - project_title
   pending_question_ids:
     - research_theme
     - reference_materials_status
-    - template_source
+    - content_template_source
     - template_family_selection
     - funding_program
     - target_length
     - output_formats
     - docx_required
+    - docx_format_template_source
     - web_search_permission
-    - human_review_setting
-    - deadline_or_delivery_time
     - missing_info_policy
   allowed_next_actions:
     - collect_more_info

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/file_capability_report.schema.json",
+  "title": "FileCapabilityReport",
+  "type": "object",
+  "required": [
+    "artifact",
+    "capabilities",
+    "missing_capabilities",
+    "degradation_rules",
+    "status"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "docx_generation_supported",
+        "docx_render_validation_supported",
+        "docx_template_extraction_supported",
+        "font_inspection_supported",
+        "json_validation_supported",
+        "markdown_docx_consistency_check_supported",
+        "image_file_inspection_supported",
+        "pdf_export_supported"
+      ],
+      "properties": {
+        "docx_generation_supported": { "type": "boolean" },
+        "docx_render_validation_supported": { "type": "boolean" },
+        "docx_template_extraction_supported": { "type": "boolean" },
+        "font_inspection_supported": { "type": "boolean" },
+        "json_validation_supported": { "type": "boolean" },
+        "markdown_docx_consistency_check_supported": { "type": "boolean" },
+        "image_file_inspection_supported": { "type": "boolean" },
+        "pdf_export_supported": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "tool_evidence": { "type": "array", "items": { "type": "object" } },
+    "missing_capabilities": { "type": "array", "items": { "type": "string" } },
+    "degradation_rules": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": false
+}

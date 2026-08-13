@@ -3,12 +3,33 @@
   "$id": "https://example.com/xxx-skill/schemas/intake_question_set.schema.json",
   "title": "IntakeQuestionSet",
   "type": "object",
-  "required": ["required_question_ids", "answered_question_ids", "pending_question_ids"],
+  "required": [
+    "required_question_ids",
+    "must_confirm_question_ids",
+    "conditional_question_ids",
+    "default_notice_ids",
+    "answered_question_ids",
+    "pending_question_ids"
+  ],
   "properties": {
     "required_question_ids": {
       "type": "array",
       "items": { "$ref": "#/$defs/question_id" },
-      "minItems": 13,
+      "uniqueItems": true
+    },
+    "must_confirm_question_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
+      "uniqueItems": true
+    },
+    "conditional_question_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
+      "uniqueItems": true
+    },
+    "default_notice_ids": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question_id" },
       "uniqueItems": true
     },
     "answered_question_ids": {
@@ -29,14 +50,19 @@
         "project_title",
         "research_theme",
         "reference_materials_status",
-        "template_source",
+        "content_template_source",
         "template_family_selection",
         "funding_program",
         "target_length",
         "output_formats",
         "docx_required",
+        "docx_format_template_source",
+        "builtin_docx_format_approval",
         "web_search_permission",
         "human_review_setting",
+        "image_generation_policy",
+        "attachment_policy",
+        "table_policy",
         "deadline_or_delivery_time",
         "missing_info_policy"
       ]

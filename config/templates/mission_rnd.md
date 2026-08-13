@@ -20,7 +20,7 @@ avoid_when:
 parameter_override_policy:
   priority_order:
     - user_explicit_request
-    - user_template_ref
+    - user_content_template_ref
     - funding_program_notice
     - built_in_template_default
   rule: 用户明确指定的页数、字数、章节、考核指标、研究周期和格式优先于本模板默认值；若用户指定与内置默认冲突，按用户指定执行，并记录冲突来源。

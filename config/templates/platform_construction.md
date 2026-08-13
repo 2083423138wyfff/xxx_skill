@@ -18,7 +18,7 @@ avoid_when:
 parameter_override_policy:
   priority_order:
     - user_explicit_request
-    - user_template_ref
+    - user_content_template_ref
     - funding_program_notice
     - built_in_template_default
   rule: 用户明确指定的建设周期、页数、字数、章节、平台类型和格式优先于本模板默认值；若缺少场地、设备、人员、经费等硬性建设条件，不得补造，只列为待补资料。

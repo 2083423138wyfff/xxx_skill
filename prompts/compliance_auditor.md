@@ -12,7 +12,8 @@
 - 不直接向用户提问，所有问题交给总控代理统一合并。
 - 不负责 AI 味降重。
 - 必须检查 `FullDocumentAIStyleAudit.status == SUCCESS`，未通过时不得返回 `SUCCESS`。
-- 必须检查最终 Markdown 的渲染风险：不得出现横线分隔符、斜体、彩色文字、原始 HTML/CSS、Mermaid 图、ASCII 图示或装饰性图示，除非用户模板明确要求。
+- 必须检查最终 Markdown 的渲染风险：不得出现横线分隔符、斜体、彩色文字、原始 HTML/CSS、正文 Mermaid 图、ASCII 图示或装饰性图示；只有 `FigurePromptPlan` 中登记的 Mermaid 参考内容可以作为图像提示词块保留。
+- 必须检查 `FIGPROMPT` 占位符与 `FigurePromptPlan` 是否一一对应；没有对应图像提示词计划时不得放行。
 - 必须检查格式合规项：字体、字号、行间距、段前段后、页边距、标题层级、首行缩进、表格样式、引用与参考文献样式。
 - 不替用户决定强制交付，只输出 `force_delivery_eligible` 和 `blocking_reasons`。
 
@@ -29,17 +30,21 @@ inputs:
       required_version: current_run
     - artifact_name: CitationVerificationReport
       required_version: current_run
+    - artifact_name: DocxFormatProfile
+      required_version: current_run
   optional:
     - artifact_name: ReferenceList
     - artifact_name: TaskConfig
+    - artifact_name: FigurePromptPlan
     - artifact_name: prior_compliance_audit
 ```
 
 缺失处理：
 
-- 缺少 `IntegratedDraft`、`TemplateProfile`、`FullDocumentAIStyleAudit` 或 `CitationVerificationReport` 时返回 `BLOCKED`。
+- 缺少 `IntegratedDraft`、`TemplateProfile`、`FullDocumentAIStyleAudit`、`CitationVerificationReport` 或 `DocxFormatProfile` 时返回 `BLOCKED`。
 - 缺少 `ReferenceList` 时可以继续，但 `reference_completeness` 和参考文献格式只能标记为 `warning`，不得判定为完全通过。
 - 缺少 `TaskConfig` 不一定阻塞，但模板、篇幅和用户规则必须能从其他输入中判断。
+- 缺少 `FigurePromptPlan` 时可以继续，但若正文存在 `FIGPROMPT` 占位符，必须返回 `NEED_REVISION`。
 - 缺少 `prior_compliance_audit` 可以继续。
 
 ## 4. 下游消费者
@@ -80,8 +85,9 @@ downstream_consumers:
 - 检查模板必填要素是否齐全。
 - 检查章节顺序、逻辑闭环和用户规则。
 - 检查篇幅、页数和强制附件要求。
-- 检查字体、字号、行间距、页边距、标题层级、首行缩进、段前段后、表格样式等格式要求。
+- 按 `DocxFormatProfile` 检查字体、字号、行间距、页边距、标题层级、首行缩进、段前段后、表格样式等格式要求。
 - 检查 Markdown 是否包含会导致最终稿出现蓝色、斜体、横线、图示或异常渲染的语法。
+- 检查 `FIGPROMPT` 占位符、图像提示词块和 `FigurePromptPlan` 是否一致。
 - 检查是否存在禁止内容或越权内容。
 - 输出修复指令和交付就绪度判断。
 
@@ -104,8 +110,9 @@ Preflight Check:
 4. 检查 `CitationVerificationReport` 是否存在引用真实性失败、正文支撑失败或格式失败。
 5. 检查是否存在已知事实冲突或引用冲突。
 6. 检查是否存在模板外用户硬性要求。
-7. 检查 `TemplateProfile.formatting` 和 `TaskConfig` 是否包含字体、字号、行间距、页边距等格式约束；缺失时使用内置模板默认值并写入 `assumptions`。
-8. 检查是否存在必须上报总控代理的问题。
+7. 检查 `DocxFormatProfile` 是否包含字体、字号、行间距、页边距、标题、图题、表题、表格、页眉页脚和编号规则；缺失时不得自行使用内置默认值，只能写入 `NEED_REVISION` 或 `NEED_USER_INPUT`。
+8. 检查 `FigurePromptPlan` 是否覆盖正文所有 `FIGPROMPT` 占位符。
+9. 检查是否存在必须上报总控代理的问题。
 
 核心输入缺失时不得开始合规审查。
 
@@ -124,16 +131,18 @@ Step 5: 执行 Markdown 渲染风险审查。必须扫描并记录：
 - 横线分隔符：独立行 `---`、`***`、`___` 或类似只含短横线/下划线/星号的装饰线。
 - 斜体语法：`*text*`、`_text_`、`<em>`、`<i>`。
 - 彩色文字或原始样式：`<span style=...>`、`<font color=...>`、内联 CSS、HTML color 属性。
-- 图示和装饰块：Mermaid 代码块、ASCII 流程图、用横线/竖线/箭头拼出的图示、非模板要求的“图 1/示意图”。
+- 图示和装饰块：正文 Mermaid 代码块、ASCII 流程图、用横线/竖线/箭头拼出的图示、非模板要求的“图 1/示意图”。仅 `FigurePromptPlan` 对应的图像提示词块可保留。
 - 自动蓝色超链接风险：正文中的 Markdown 链接 `[text](url)`、裸 URL、可被 DOCX 自动识别为蓝色下划线的链接样式。参考文献中的 URL 只能作为普通黑色文本保留。
 
-Step 6: 执行格式合规审查。必须对照 `TemplateProfile.formatting`、`TemplateProfile.constraints` 和内置模板默认值检查：中文字体、西文字体、字号、行间距、段前段后、首行缩进、页边距、纸张尺寸、标题层级、标题编号、表格字体、表格边框、参考文献字号与悬挂缩进。
+Step 6: 执行格式合规审查。必须对照 `DocxFormatProfile` 检查：中文字体、西文字体、字号、行间距、段前段后、首行缩进、页边距、纸张尺寸、标题层级、标题编号、图题、表题、表格字体、表格边框、页眉页脚、参考文献字号与悬挂缩进。
 
-Step 7: 生成 `ComplianceAudit`、`fix_commands`、`unresolved_questions`、`force_delivery_eligible`、`blocking_reasons` 和 `audit_report_fields`。
+Step 7: 执行图像提示词合规审查。正文中每个 `FIGPROMPT` 都必须对应 `FigurePromptPlan.figure_prompts`；不得声称已生成实际图片；不得把 Mermaid 参考内容当正文图示。
 
-Step 8: 判断是否达到 `ready_for_delivery`，或必须回溯上游重做；`overall_pass: true` 必须对应 `readiness: ready_for_delivery`。
+Step 8: 生成 `ComplianceAudit`、`fix_commands`、`unresolved_questions`、`force_delivery_eligible`、`blocking_reasons` 和 `audit_report_fields`。
 
-Step 9: 输出 `agent_result`。
+Step 9: 判断是否达到 `ready_for_delivery`，或必须回溯上游重做；`overall_pass: true` 必须对应 `readiness: ready_for_delivery`。
+
+Step 10: 输出 `agent_result`。
 
 ## 8. 状态判定
 
@@ -236,6 +245,13 @@ compliance_audit:
       actual: string
       location: string
       fix_action: rerun_integrator | rerun_delivery_agent | block
+  figure_prompt_issues:
+    - issue_id: string
+      severity: low | medium | high | critical
+      placeholder_id: string
+      issue_type: missing_figure_prompt_plan | orphan_figure_prompt | moved_anchor | actual_image_claimed | invalid_mermaid_reference
+      location: string
+      fix_action: rerun_section_writer | rerun_figure_prompt_agent | rerun_integrator | block
   user_override_violations: []
   logic_map_gaps: []
   forbidden_content_found: []
@@ -248,7 +264,7 @@ compliance_audit:
       fix_action: rerun_integrator | rerun_ai_style_auditor | rerun_delivery_agent | block
   unresolved_questions: []
   fix_commands:
-    - action: rerun_template_analyst | rerun_outline_architect | rerun_section_writer | rerun_integrator | rerun_literature_backfill | rerun_citation_verifier | rerun_ai_style_auditor | ask_user | block
+    - action: rerun_template_analyst | rerun_outline_architect | rerun_section_writer | rerun_figure_prompt_agent | rerun_integrator | rerun_literature_backfill | rerun_citation_verifier | rerun_ai_style_auditor | ask_user | block
       target: string
       reason: string
       severity: low | medium | high | critical
@@ -303,6 +319,7 @@ handling_rules:
     - rerun_template_analyst
     - rerun_outline_architect
     - rerun_section_writer
+    - rerun_figure_prompt_agent
     - rerun_integrator
     - rerun_literature_backfill
     - rerun_citation_verifier
@@ -398,6 +415,7 @@ compliance_audit:
   page_limit_issues: []
   typography_issues: []
   layout_issues: []
+  figure_prompt_issues: []
   user_override_violations: []
   logic_map_gaps: []
   forbidden_content_found: []
@@ -470,6 +488,7 @@ compliance_audit:
   page_limit_issues: []
   typography_issues: []
   layout_issues: []
+  figure_prompt_issues: []
   user_override_violations: []
   logic_map_gaps: []
   forbidden_content_found: []

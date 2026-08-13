@@ -19,6 +19,8 @@
     "artifact": { "$ref": "./artifact.schema.json" },
     "project_title": { "type": "string", "minLength": 1 },
     "reference_materials": { "type": "array", "items": { "type": "string" } },
+    "content_template_ref": { "type": ["string", "null"] },
+    "docx_format_template_ref": { "type": ["string", "null"] },
     "template": {
       "type": "object",
       "required": ["source", "template_type"],
@@ -42,6 +44,7 @@
     },
     "research_scope": { "type": "string", "enum": ["web_search", "academic_db"] },
     "capability_snapshot": { "$ref": "./capability_snapshot.schema.json" },
+    "file_capability_report_ref": { "type": ["string", "null"] },
     "output_formats": {
       "type": "array",
       "items": { "type": "string", "enum": ["markdown", "json", "docx"] },
@@ -82,6 +85,44 @@
     },
     "funding_program": { "type": ["string", "null"] },
     "deadline_or_delivery_time": { "type": ["string", "null"] },
+    "docx_format_decision_state": {
+      "type": "object",
+      "required": ["docx_required", "source", "user_approved_builtin_template", "pending_questions"],
+      "properties": {
+        "docx_required": { "type": "boolean" },
+        "source": { "type": "string", "enum": ["user_template", "builtin_template", "manual_user_answers", "unresolved"] },
+        "user_approved_builtin_template": { "type": "boolean" },
+        "pending_questions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "image_generation_policy": {
+      "type": "object",
+      "required": ["actual_image_generation", "output_mode"],
+      "properties": {
+        "actual_image_generation": { "type": "boolean", "const": false },
+        "output_mode": { "type": "string", "enum": ["figure_prompts_or_mermaid_only"] }
+      },
+      "additionalProperties": false
+    },
+    "attachment_policy": {
+      "type": "object",
+      "required": ["source", "missing_behavior"],
+      "properties": {
+        "source": { "type": "string", "enum": ["user_provided_only"] },
+        "missing_behavior": { "type": "string", "enum": ["leave_blank"] }
+      },
+      "additionalProperties": false
+    },
+    "table_policy": {
+      "type": "object",
+      "required": ["source", "missing_behavior"],
+      "properties": {
+        "source": { "type": "string", "enum": ["user_template_and_user_data_only"] },
+        "missing_behavior": { "type": "string", "enum": ["leave_blank_or_placeholder"] }
+      },
+      "additionalProperties": false
+    },
     "missing_info_policy": { "type": ["string", "null"], "enum": ["placeholder_then_continue", "stop_and_wait", null] },
     "intake_question_set": { "$ref": "./intake_question_set.schema.json" },
     "assumptions": { "type": "array", "items": { "type": "string" } }

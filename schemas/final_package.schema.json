@@ -7,7 +7,10 @@
     "artifact",
     "main_document_md",
     "metadata_json",
+    "docx_format_profile_id",
+    "file_capability_report_id",
     "reference_list_json",
+    "figure_prompts_json",
     "docx_validation",
     "markdown_style_validation",
     "assumptions_md",
@@ -23,6 +26,8 @@
     "artifact": { "$ref": "./artifact.schema.json" },
     "main_document_md": { "type": "string" },
     "metadata_json": { "type": "object" },
+    "docx_format_profile_id": { "type": ["string", "null"] },
+    "file_capability_report_id": { "type": ["string", "null"] },
     "reference_list_json": {
       "type": "object",
       "required": ["references", "citation_verification_report_id", "reference_format", "verified_only"],
@@ -31,6 +36,30 @@
         "citation_verification_report_id": { "type": "string" },
         "reference_format": { "type": "string" },
         "verified_only": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "figure_prompts_json": {
+      "type": "object",
+      "required": ["figure_prompt_plan_id", "embedded_prompt_blocks", "actual_images_generated"],
+      "properties": {
+        "figure_prompt_plan_id": { "type": ["string", "null"] },
+        "embedded_prompt_blocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["placeholder_id", "section_id", "insertion_anchor", "inserted", "output_type"],
+            "properties": {
+              "placeholder_id": { "type": "string" },
+              "section_id": { "type": "string" },
+              "insertion_anchor": { "type": "string" },
+              "inserted": { "type": "boolean" },
+              "output_type": { "type": "string", "enum": ["image_prompt", "mermaid_reference", "both"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "actual_images_generated": { "type": "boolean", "const": false }
       },
       "additionalProperties": false
     },

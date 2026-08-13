@@ -7,7 +7,8 @@ inputs:
     project_title: "项目标题或研究主题"
     reference_materials: "用户提供的项目资料、技术方案、团队基础、指南或相关文本"
   optional:
-    template_ref: "用户提供的模板文件或模板文本"
+    content_template_ref: "用户提供的内容模板、申报指南或模板文本"
+    docx_format_template_ref: "用户提供的 DOCX/Word 格式模板文件"
     template_type: "用户指定的内置模板族"
     funding_program: "申报计划或资助项目名称"
     output_formats:
@@ -89,11 +90,40 @@ delivery:
     checks:
       - heading_levels
       - tables
-      - images
+      - figure_prompt_blocks
       - citation_numbers
       - chinese_fonts
+      - western_fonts
+      - font_size
+      - line_spacing
+      - paragraph_spacing
+      - first_line_indent
+      - page_margins
+      - text_color
+      - italic
+      - hyperlink_style
+      - horizontal_rules
       - page_estimate
       - content_consistency
+
+figure_prompt_policy:
+  actual_image_generation: false
+  allowed_outputs:
+    - image_prompt
+    - mermaid_reference
+    - both
+  placement_decided_by: section_writer
+  prompt_generated_by: figure_prompt_agent
+
+file_qa_policy:
+  required_after_delivery: true
+  checks:
+    - file_exists
+    - file_openable
+    - json_parse
+    - docx_render_when_available
+    - markdown_docx_content_consistency
+    - figure_prompt_position_consistency
 
 force_delivery_policy:
   allowed_when_user_explicitly_approves: true
