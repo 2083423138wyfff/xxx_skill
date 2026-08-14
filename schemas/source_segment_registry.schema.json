@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/source_segment_registry.schema.json",
+  "title": "SourceSegmentRegistry",
+  "type": "object",
+  "required": ["artifact", "sources", "segments", "status"],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "ref",
+          "file_name",
+          "source_type",
+          "detected_project_title",
+          "detected_theme",
+          "summary",
+          "readable",
+          "issues"
+        ],
+        "properties": {
+          "source_id": { "type": "string", "pattern": "^FILE-[0-9]{3,}$" },
+          "ref": { "type": "string" },
+          "file_name": { "type": "string" },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "old_proposal",
+              "topic_material",
+              "content_template",
+              "docx_format_template",
+              "guide",
+              "attachment",
+              "user_note",
+              "unknown"
+            ]
+          },
+          "detected_project_title": { "type": ["string", "null"] },
+          "detected_theme": { "type": ["string", "null"] },
+          "summary": { "type": "string" },
+          "readable": { "type": "boolean" },
+          "issues": { "type": "array", "items": { "type": "object" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "segment_id",
+          "source_id",
+          "location",
+          "ordinal_hint",
+          "heading_path",
+          "text_anchor",
+          "segment_type",
+          "title",
+          "summary",
+          "claims",
+          "default_reuse_policy",
+          "reusable_as",
+          "reuse_requires_user_confirmation",
+          "risk_flags",
+          "forbidden_to_migrate",
+          "notes"
+        ],
+        "properties": {
+          "segment_id": { "type": "string", "pattern": "^SEG-[0-9]{3,}$" },
+          "source_id": { "type": "string", "pattern": "^FILE-[0-9]{3,}$" },
+          "location": { "type": "string" },
+          "ordinal_hint": { "type": ["integer", "null"], "minimum": 1 },
+          "heading_path": { "type": "array", "items": { "type": "string" } },
+          "text_anchor": { "type": "string" },
+          "segment_type": {
+            "type": "string",
+            "enum": [
+              "research_content",
+              "technical_route",
+              "team_basis",
+              "prior_achievement",
+              "platform_condition",
+              "budget",
+              "indicator",
+              "partner",
+              "output_plan",
+              "background",
+              "old_project_context",
+              "template_rule",
+              "attachment",
+              "other"
+            ]
+          },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "claims": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["claim_id", "text", "source_refs", "verification_status"],
+              "properties": {
+                "claim_id": { "type": "string" },
+                "text": { "type": "string" },
+                "source_refs": { "type": "array", "items": { "type": "string" } },
+                "verification_status": {
+                  "type": "string",
+                  "enum": ["verified", "unverified", "user_confirmation_needed"]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "default_reuse_policy": {
+            "type": "string",
+            "enum": ["reusable", "conditionally_reusable", "forbidden"]
+          },
+          "reusable_as": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["fact", "structure", "wording_style", "evidence"] },
+            "uniqueItems": true
+          },
+          "reuse_requires_user_confirmation": { "type": "boolean" },
+          "risk_flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "old_project_title",
+                "old_team_mismatch",
+                "old_budget",
+                "old_indicator",
+                "old_partner",
+                "old_application_type",
+                "old_period",
+                "old_management_arrangement",
+                "unrelated_technical_route",
+                "unverified_achievement"
+              ]
+            }
+          },
+          "forbidden_to_migrate": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_USER_INPUT", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": false
+}

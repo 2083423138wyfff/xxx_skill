@@ -400,6 +400,15 @@ assumptions: []
 
 ## 15. 禁止事项
 
+### 本轮新增硬规则：片段映射与大纲暂停
+
+- 禁止在缺少 `SourceSegmentAssemblyPlan` 时设计基于旧本子或多资料组合的大纲。
+- 大纲必须显式输出每个章节使用哪些 `selected_segments`、禁止哪些片段、缺少哪些过渡逻辑。
+- 大纲输出后的 `outline_state` 必须是 `PENDING_USER_REVIEW`，不得直接标记 `APPROVED_LOCKED`。
+- 禁止在用户批准前把大纲交给 Section Writer。
+- 禁止为弥补片段逻辑断裂而编造总技术路线、指标、预算、成果或合作单位。
+- 接收用户修改意见时，只能执行 Dispatcher 生成的 `OutlineRevisionRequest`。
+
 - 禁止写正文。
 - 禁止编造缺失事实。
 - 禁止擅自新增团队成果、预算、指标、合作单位。

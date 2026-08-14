@@ -1,6 +1,6 @@
 ---
 name: xxx-skill
-description: Use when generating, auditing, and delivering Chinese research project proposals with multi-agent prompts, fixed templates, citations, AI style review, compliance audit, Markdown JSON DOCX outputs, and degradation handling.
+description: Use when generating, rewriting, auditing, and delivering Chinese research project proposals, including old proposal reuse, multi-source segment assembly, fixed templates, citations, AI style review, compliance audit, Markdown JSON DOCX outputs, and degradation handling.
 ---
 
 # SKILL: xxx-skill
@@ -8,13 +8,15 @@ description: Use when generating, auditing, and delivering Chinese research proj
 ## 元数据
 
 - **skill_id**: `xxx-skill`
-- **version**: `0.2.0`
+- **version**: `0.3.0`
 - **scope**: 科研项目申请书多 Agent 生成、审查与交付
 - **license**: MIT
 
 ## 能力声明
 
 本 Skill 根据用户提供的项目标题、参考资料和可选内容模板/DOCX 格式模板，生成科研项目申请书。系统默认启用人工审核，使用多 Agent 协作完成文件能力检测、输入对齐、模板解析、内容分析、大纲设计、章节写作、图像提示词生成、联网文献检索、正文整合、引用核验、全文 AI 味审查、合规审查、Markdown/JSON/DOCX 交付和最终文件 QA。
+
+当用户提供旧本子、多主题资料，或指定“文件1第2个研究内容 + 文件2第1个研究内容”这类片段组合时，必须先由 `Reference Material Decomposer` 生成 `SourceSegmentRegistry` 和 `SourceSegmentAssemblyPlan`。旧项目标题、旧预算、旧指标、旧合作单位和未选片段默认不得迁移；团队基础复用必须确认团队/单位/负责人一致或获得用户明确授权。
 
 ## 运行入口硬规则
 
@@ -28,6 +30,8 @@ description: Use when generating, auditing, and delivering Chinese research proj
 4. 如多 Agent 不支持，必须先让用户选择：`1` 接受降级，或 `2` 取消任务。
 5. 用户接受降级后，或多 Agent 验证通过后，进入完整输入对齐。
 6. 第一轮输入对齐必须遵守 `config/intake_question_protocol.md`：先从用户资料自动抽取，抽取不到或必须确认的字段再询问用户。
+7. `Intake Agent` 完成后必须进入 `Reference Material Decomposer`，不得把旧本子直接交给内容分析或正文写作。
+8. `Outline Architect` 输出后必须进入强制 `post_outline`，用户批准 `OutlinePlan`、`SectionAssignment` 和 `LogicMap` 的具体版本前，不得写作。
 
 能力判断不得依赖模型自称、角色扮演、单上下文多角色模拟或顺序 prompt 执行。只有 `subagent_probe.passed: true`，且证据中存在独立子代理 `agent_result`、独立 `run_id`、`independent_context: true` 和 `returned_agent_result: true` 时，才允许写 `multi_agent_supported: true`。
 
@@ -104,6 +108,7 @@ FinalPackage:
 | Dispatcher | 总控调度、状态维护、回溯和降级决策 |
 | File Capability Inspector | 检测 DOCX 生成、模板解析、渲染、字体检查和文件 QA 能力 |
 | Intake Agent | 输入对齐、缺失信息识别、TaskConfig 生成 |
+| Reference Material Decomposer | 拆解旧本子和多主题资料，生成片段注册表、片段装配计划和复用边界 |
 | Template Analyst | 用户内容模板解析、内置模板匹配、TemplateProfile 和 DocxFormatProfile 生成 |
 | Content Analyst | 从用户资料提取研究问题、目标、方法、基础和指标 |
 | Outline Architect | 设计章节结构、写作分工、LogicMap、DoNotWriteList |
@@ -136,6 +141,6 @@ FinalPackage:
 - 首轮输入问题协议，见 `config/intake_question_protocol.md`。
 - DOCX 格式模板选择协议，见 `config/docx_format_selection_protocol.md`。
 - 内置 DOCX 格式模板候选，见 `config/builtin_docx_format_hithesis_midterm.md`。
-- 16 个流程提示词，见 `prompts/README.md`。
+- 17 个流程提示词，见 `prompts/README.md`。
 - 公共状态协议，见 `prompts/common_protocol.md`。
 - JSON Schema，见 `schemas/`。

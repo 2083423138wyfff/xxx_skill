@@ -721,6 +721,14 @@ cancellation:
 
 ## 15. 禁止事项
 
+### 本轮新增硬规则：post_outline 不可跳过
+
+- 禁止跳过 `post_outline`；该闸口不受 `human_review.enabled = false` 影响。
+- `post_outline` 必须展示 `outline_review_packet`，包括人类可读大纲摘要、章节-片段映射、禁止复用摘要、未解决逻辑缺口和待用户确认问题。
+- 用户批准必须绑定 `OutlinePlan`、`SectionAssignment` 和 `LogicMap` 的具体版本。
+- 用户选择修改时，必须输出可交给 Dispatcher 的用户反馈，不得直接让 Outline Architect 猜。
+- 大纲修复后必须再次进入 `post_outline`。
+
 - 禁止擅自推进流程。
 - 禁止替用户补写事实、指标或预算。
 - 禁止把取消解释成通过。

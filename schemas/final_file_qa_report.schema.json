@@ -7,6 +7,7 @@
     "artifact",
     "file_checks",
     "content_consistency",
+    "source_reuse_trace",
     "docx_format_consistency",
     "docx_render_check",
     "json_parse_check",
@@ -24,6 +25,26 @@
         "markdown_docx_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
         "reference_list_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] },
         "figure_prompt_match": { "type": "string", "enum": ["pass", "warning", "fail", "not_applicable"] }
+      },
+      "additionalProperties": false
+    },
+    "source_reuse_trace": {
+      "type": "object",
+      "required": [
+        "source_segment_registry_exists",
+        "source_segment_assembly_plan_exists",
+        "outline_approval_exists",
+        "source_reuse_audit_exists",
+        "forbidden_segment_leakage_check",
+        "old_context_leakage_check"
+      ],
+      "properties": {
+        "source_segment_registry_exists": { "$ref": "#/$defs/check_result" },
+        "source_segment_assembly_plan_exists": { "$ref": "#/$defs/check_result" },
+        "outline_approval_exists": { "$ref": "#/$defs/check_result" },
+        "source_reuse_audit_exists": { "$ref": "#/$defs/check_result" },
+        "forbidden_segment_leakage_check": { "$ref": "#/$defs/check_result" },
+        "old_context_leakage_check": { "$ref": "#/$defs/check_result" }
       },
       "additionalProperties": false
     },

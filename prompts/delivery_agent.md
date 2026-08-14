@@ -819,6 +819,14 @@ final_package:
 
 ## 15. 禁止事项
 
+### 本轮新增硬规则：交付追踪
+
+- 最终交付包必须记录 `source_segment_registry_id`、`source_segment_assembly_plan_id`、`source_reuse_audit_id`、`outline_approval_id` 和 `outline_review_packet_id`。
+- 必须把 `source_segment_registry.json`、`source_segment_assembly_plan.json`、`source_reuse_audit.json`、`outline_review_packet.md`、`outline_approval.json` 纳入 manifest 或 audit trail。
+- 禁止修改正文逻辑、片段映射、大纲结构、引用关系或复用策略。
+- DOCX 失败时仍按既有规则降级 Markdown + JSON，但不得丢失片段级追踪文件。
+- 存在团队基础复用时，交付摘要必须说明“已确认复用”“未复用”或“存在未解决复用风险”。
+
 - 禁止更改正文逻辑、事实或引用关系。
 - 禁止输出 HTML 或 PDF 作为第一阶段交付承诺。
 - 禁止伪装审查通过。

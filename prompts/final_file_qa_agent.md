@@ -395,6 +395,14 @@ final_file_qa_report:
 
 ## 15. 禁止事项
 
+### 本轮新增硬规则：片段追踪 QA
+
+- 必须检查 `source_segment_registry.json`、`source_segment_assembly_plan.json`、`source_reuse_audit.json`、`outline_review_packet.md` 和 `outline_approval.json` 是否存在。
+- 必须检查最终正文是否含有未选片段、禁止迁移片段或旧项目上下文的敏感事实。
+- 必须检查最终包中的 outline approval 版本是否与正文使用的大纲版本一致。
+- 必须输出 `source_reuse_trace`。
+- 缺少片段追踪文件或大纲批准文件时，不得返回 `SUCCESS`。
+
 - 禁止修改最终文件。
 - 禁止生成 DOCX。
 - 禁止生成图片。

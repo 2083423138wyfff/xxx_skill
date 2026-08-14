@@ -63,6 +63,10 @@
         "image_generation_policy",
         "attachment_policy",
         "table_policy",
+        "source_reuse_mode",
+        "source_segment_selection",
+        "team_basis_reuse_confirmation",
+        "current_team_identity",
         "deadline_or_delivery_time",
         "missing_info_policy"
       ]

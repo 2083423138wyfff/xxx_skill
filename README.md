@@ -9,6 +9,8 @@ Multi-agent skill for Chinese research proposal drafting, review, and delivery.
 它面向低门槛输入场景：用户提供项目标题或研究主题、参考资料，可选提供模板；系统完成能力检测、输入对齐、模板解析、内容分析、大纲设计、分章节写作、图像提示词生成、联网文献检索与回填、整合、引用核验、全文 AI 味审查、合规审查、交付和最终文件 QA。
 It is built for low-friction inputs: users provide a project title or research topic, reference materials, and optionally a template; the system handles capability inspection, intake alignment, template analysis, content analysis, outline design, section writing, figure prompt generation, online literature search and backfill, integration, citation verification, full-document AI-style review, compliance audit, delivery, and final file QA.
 
+It also supports old-proposal rewriting and multi-source segment assembly. When users ask to reuse parts of an existing proposal, or combine selected sections from several files, the workflow first decomposes materials into traceable source segments, asks for unresolved reuse authorization, and blocks writing until the outline is explicitly approved.
+
 ## 核心原则 / Core Principles
 
 - 默认启用人工审核。  
@@ -25,6 +27,10 @@ It is built for low-friction inputs: users provide a project title or research t
   If the runtime does not support multi-agent execution, the user must first choose degradation or task cancellation.
 - 任一 Agent 不得编造团队成果、指标、预算、合作单位、项目经历或正式引用。  
   No agent may invent team achievements, metrics, budgets, partners, project history, or formal citations.
+- 旧本子和多主题资料必须先拆成片段再复用；未选片段、旧项目标题、旧预算、旧指标、旧合作单位和旧项目上下文默认不得迁移。
+  Old proposals and multi-topic materials must be decomposed into reusable segments first; unselected segments, old titles, budgets, indicators, partners, and old project context must not migrate by default.
+- `post_outline` 是强制人工闸口，不受一般人工审核开关影响。
+  `post_outline` is a mandatory human gate and cannot be disabled by the general human-review setting.
 
 ## 快速开始 / Quick Start
 
@@ -76,9 +82,11 @@ Main workflow:
 Dispatcher
   -> File Capability Inspector
   -> Intake Agent
+  -> Reference Material Decomposer
   -> Template Analyst
   -> Content Analyst
   -> Outline Architect
+  -> Human Gate: post_outline
   -> Section Writer(s)
   -> Figure Prompt Agent
   -> Literature Search Backfill
@@ -190,6 +198,7 @@ xxx_skill/
 │   ├── dispatcher.md
 │   ├── file_capability_inspector.md
 │   ├── intake_agent.md
+│   ├── reference_material_decomposer.md
 │   ├── template_analyst.md
 │   ├── content_analyst.md
 │   ├── outline_architect.md
@@ -209,6 +218,9 @@ xxx_skill/
     ├── capability_snapshot.schema.json
     ├── file_capability_report.schema.json
     ├── intake_question_set.schema.json
+    ├── source_segment_registry.schema.json
+    ├── source_segment_assembly_plan.schema.json
+    ├── outline_revision_request.schema.json
     ├── task_config.schema.json
     ├── template_profile.schema.json
     ├── docx_format_profile.schema.json

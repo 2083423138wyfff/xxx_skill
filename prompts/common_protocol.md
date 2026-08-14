@@ -383,3 +383,85 @@ QA 失败时不得标记 `READY_FOR_DELIVERY`；只能进入 `DELIVERED_WITH_WAR
 - 用户未明确接受降级前，不得继续写作、检索或交付。
 - 降级只改变执行方式，不改变产物、审核闸口、状态码和交付规则。
 - 单 Agent 模式不得跳过联网文献检索、引用核验、AI 味审查、合规审查和交付检查。
+
+## 参考资料拆解与片段复用协议
+
+`Reference Material Decomposer` 必须在 `Content Analyst` 和 `Outline Architect` 之前运行。它只处理内容片段、事实边界、复用策略和片段索引，不处理 Word/DOCX 排版格式；DOCX 字体、字号、行距、页边距和样式仍由 `Template Analyst` 生成 `DocxFormatProfile`。
+
+新增核心产物：
+
+```yaml
+SourceSegmentRegistry:
+  schema: schemas/source_segment_registry.schema.json
+SourceSegmentAssemblyPlan:
+  schema: schemas/source_segment_assembly_plan.schema.json
+OutlineRevisionRequest:
+  schema: schemas/outline_revision_request.schema.json
+```
+
+流程固定为：
+
+```text
+WELCOME
+  -> FILE_CAPABILITY_INSPECTION
+  -> INTAKE
+  -> REFERENCE_MATERIAL_DECOMPOSITION
+  -> TEMPLATE_ANALYSIS
+  -> CONTENT_ANALYSIS
+  -> OUTLINE_DESIGN
+  -> HUMAN_GATE: post_outline
+  -> SECTION_WRITING
+```
+
+片段复用硬规则：
+
+- 旧本子必须先拆成片段，不得整本当作当前项目事实资料。
+- 用户指定“文件1第2个研究内容 + 文件2第1个研究内容”时，必须解析到稳定 `segment_id`；无法唯一定位时必须 `NEED_USER_INPUT`。
+- 未选片段不得被任何下游 Agent 偷用。
+- 旧项目标题、旧申报类别、旧研究对象、旧应用场景、旧预算、旧指标、旧合作单位、旧周期、旧管理安排和无关旧技术路线默认禁止迁移。
+- 团队背景、负责人经历、平台条件、前期论文、专利、软著、项目、奖励、数据集和长期合作基础仅允许条件复用；必须确认当前团队/单位/负责人一致，或用户明确授权沿用。
+- `content_template` 只能作为章节结构、字数、附件和写作要求来源；`docx_format_template` 只能作为排版格式来源。二者都不能作为当前项目事实来源。
+- 新正文事实必须追溯到用户明确资料片段、用户新补充资料或已核验文献。
+
+大纲闸口硬规则：
+
+```yaml
+post_outline_gate:
+  required: true
+  can_skip: false
+  approved_artifact: OutlinePlan
+  approved_version: string
+  approved_section_assignments_version: string
+  approved_logic_map_version: string
+  decision: APPROVE | REQUEST_REVISION | CANCEL
+  user_note: string
+  timestamp: ISO8601
+```
+
+- `Outline Architect` 输出后必须停在 `outline_state: PENDING_USER_REVIEW`。
+- 用户未明确批准 `OutlinePlan`、`SectionAssignment` 和 `LogicMap` 的具体版本前，不得进入 `Section Writer`。
+- 即使 `human_review.enabled = false`，`post_outline` 也不能关闭、跳过或强制交付绕过。
+- 用户要求改大纲时，必须先由 `Dispatcher` 生成结构化 `OutlineRevisionRequest`，再按变更类型回溯到对应 Agent。
+- 大纲修复后必须再次进入 `post_outline`，等待用户批准。
+- 写作开始后，下游 Agent 不得调整章节顺序、章节边界或片段映射。
+
+默认大纲回溯表：
+
+| 用户修改类型 | 默认回溯 |
+|---|---|
+| 只改章节标题、顺序、小范围合并 | Outline Architect |
+| 修改研究主题、项目目标 | Intake Agent -> Content Analyst -> Outline Architect |
+| 指定新增、删除或替换参考资料片段 | Reference Material Decomposer -> Content Analyst -> Outline Architect |
+| 修改模板或申报类型 | Template Analyst -> Outline Architect |
+| 修改字数或页数 | Template Analyst -> Outline Architect |
+| 修改团队背景复用规则 | Reference Material Decomposer -> Content Analyst -> Outline Architect |
+| 修改哪些旧本子片段可用 | Reference Material Decomposer -> Content Analyst -> Outline Architect |
+| 用户反馈含糊 | Dispatcher 先问用户澄清 |
+
+最终收口必须保留：
+
+- `source_segment_registry.json`
+- `source_segment_assembly_plan.json`
+- `source_reuse_audit.json`
+- `outline_review_packet.md`
+- `outline_approval.json`

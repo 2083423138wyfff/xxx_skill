@@ -204,6 +204,8 @@ Step 4: 进入 `FILE_CAPABILITY_INSPECTION`，路由给 `File Capability Inspect
 
 Step 5: 进入 `INTAKE`，路由给 `Intake Agent`。如果存在未批准的 `post_intake` 闸口，停止并请求用户确认。
 
+Step 5.5: 进入 `REFERENCE_MATERIAL_DECOMPOSITION`，路由给 `Reference Material Decomposer`。该阶段必须生成 `SourceSegmentRegistry` 和 `SourceSegmentAssemblyPlan`。如果用户资料包含旧本子、多主题资料或指定片段组合，但片段无法定位或复用授权不完整，必须停止并合并用户问题。
+
 Step 6: 根据各子代理 `agent_result` 更新 `current_stage`、`next_stage`、`active_artifacts` 和 `blocked_reasons`。如果子代理返回 `NEED_USER_INPUT`，必须检查 `questions_for_user` 非空，并把每个 `missing_items` 映射成问题后停止；如果子代理返回 `NEED_USER_INPUT` 但问题为空，必须返回 `NEED_REVISION` 要求该子代理重跑。
 
 Step 7: 计算 `question_completeness_check`。如果 `pending_question_ids` 非空，或 `missing_item_question_map` 未覆盖全部缺失项，不得进入 `TEMPLATE_ANALYSIS`、`CONTENT_ANALYSIS` 或任何写作链路。
@@ -212,7 +214,7 @@ Step 8: 执行人工审核闸口。读取被批准的 `artifact_id` 和 `version
 
 Step 9: 根据产物依赖和变更记录决定局部回溯。只允许重跑受影响的上游或同级代理，不得全量重跑覆盖有效产物。
 
-Step 10: 在 `TEMPLATE_ANALYSIS` 和 `CONTENT_ANALYSIS` 均完成后进入 `OUTLINE_DESIGN`；章节写作完成后，按产物依赖调度 `FIGURE_PROMPTING` 和 `LITERATURE_SEARCH_AND_BACKFILL`。`INTEGRATION` 必须等待全部 `SectionDraft`、`FigurePromptPlan` 和引用回填产物完成。
+Step 10: 在 `REFERENCE_MATERIAL_DECOMPOSITION`、`TEMPLATE_ANALYSIS` 和 `CONTENT_ANALYSIS` 均完成后进入 `OUTLINE_DESIGN`。`OUTLINE_DESIGN` 完成后必须进入 `post_outline` 人工闸口；用户未批准 `OutlinePlan`、`SectionAssignment` 和 `LogicMap` 的具体版本前，不得进入 `SECTION_WRITING`。章节写作完成后，按产物依赖调度 `FIGURE_PROMPTING` 和 `LITERATURE_SEARCH_AND_BACKFILL`。`INTEGRATION` 必须等待全部 `SectionDraft`、`FigurePromptPlan` 和引用回填产物完成。
 
 Step 11: 严格串行执行 `CITATION_VERIFICATION`、`FULL_DOCUMENT_AI_STYLE_AUDIT`、`COMPLIANCE_AUDIT`、`DELIVERY`、`FINAL_FILE_QA`。任何阶段未完成时，不得进入下一阶段。
 
@@ -224,9 +226,11 @@ Step 12: 根据交付规则和最终文件 QA 结果输出 `READY_FOR_DELIVERY`�
 WELCOME
   -> FILE_CAPABILITY_INSPECTION
   -> INTAKE
+  -> REFERENCE_MATERIAL_DECOMPOSITION
   -> TEMPLATE_ANALYSIS
   -> CONTENT_ANALYSIS
   -> OUTLINE_DESIGN
+  -> HUMAN_GATE: post_outline
   -> SECTION_WRITING
   -> FIGURE_PROMPTING
   -> LITERATURE_SEARCH_AND_BACKFILL
@@ -241,7 +245,8 @@ WELCOME
 
 并行规则：
 
-- `TEMPLATE_ANALYSIS` 和 `CONTENT_ANALYSIS` 可以并行。
+- `REFERENCE_MATERIAL_DECOMPOSITION` 必须在 `CONTENT_ANALYSIS` 和 `OUTLINE_DESIGN` 之前完成。
+- `TEMPLATE_ANALYSIS` 和 `CONTENT_ANALYSIS` 可以并行，但 `CONTENT_ANALYSIS` 消费旧本子或多主题资料时必须等待 `SourceSegmentRegistry` 和 `SourceSegmentAssemblyPlan`。
 - `SECTION_WRITING` 可以按 `SectionAssignment` 并行。
 - `FIGURE_PROMPTING` 可以按 `figure_prompt_placeholders` 拆分并行，但不得新增、删除或移动占位符。
 - `LITERATURE_SEARCH_AND_BACKFILL` 可以按 `CitationSearchPlan` 拆分并行。
@@ -325,7 +330,7 @@ agent_result:
 
 dispatcher_state:
   execution_mode: parallel_multi_agent | sequential_multi_role | single_agent_compact
-  current_stage: WELCOME | FILE_CAPABILITY_INSPECTION | INTAKE | TEMPLATE_ANALYSIS | CONTENT_ANALYSIS | OUTLINE_DESIGN | SECTION_WRITING | FIGURE_PROMPTING | LITERATURE_SEARCH_AND_BACKFILL | INTEGRATION | CITATION_VERIFICATION | FULL_DOCUMENT_AI_STYLE_AUDIT | COMPLIANCE_AUDIT | DELIVERY | FINAL_FILE_QA | DONE
+  current_stage: WELCOME | FILE_CAPABILITY_INSPECTION | INTAKE | REFERENCE_MATERIAL_DECOMPOSITION | TEMPLATE_ANALYSIS | CONTENT_ANALYSIS | OUTLINE_DESIGN | HUMAN_GATE_POST_OUTLINE | SECTION_WRITING | FIGURE_PROMPTING | LITERATURE_SEARCH_AND_BACKFILL | INTEGRATION | CITATION_VERIFICATION | FULL_DOCUMENT_AI_STYLE_AUDIT | COMPLIANCE_AUDIT | DELIVERY | FINAL_FILE_QA | DONE
   next_stage: string | null
   capability_snapshot:
     multi_agent_supported: true | false
@@ -476,7 +481,7 @@ agent_result:
 dispatcher_state:
   execution_mode: parallel_multi_agent
   current_stage: INTAKE
-  next_stage: TEMPLATE_ANALYSIS
+  next_stage: REFERENCE_MATERIAL_DECOMPOSITION
   capability_snapshot:
     multi_agent_supported: true
     parallel_supported: true
@@ -629,6 +634,15 @@ dispatcher_state:
 ```
 
 ## 15. 禁止事项
+
+### 本轮新增硬规则：参考资料拆解与大纲闸口
+
+- 禁止在 `INTAKE` 后直接进入 `TEMPLATE_ANALYSIS` 或 `CONTENT_ANALYSIS`；必须先调度 `REFERENCE_MATERIAL_DECOMPOSITION` 并取得 `SourceSegmentRegistry` 与 `SourceSegmentAssemblyPlan`。
+- 禁止把旧本子整本交给 Content Analyst、Outline Architect 或 Section Writer 当作当前项目事实资料。
+- 禁止跳过 `post_outline`；即使用户关闭一般人工审核，也必须在 `OUTLINE_DESIGN` 后暂停，等待用户批准 `OutlinePlan`、`SectionAssignment` 和 `LogicMap` 的具体版本。
+- 禁止在用户未批准大纲前调度任何 Section Writer。
+- 用户修改大纲时，必须先生成 `OutlineRevisionRequest`，并按固定回溯表路由到 `Outline Architect`、`Content Analyst`、`Reference Material Decomposer`、`Template Analyst` 或 `Intake Agent`。
+- 大纲修复后必须重新进入 `post_outline`，不得把历史批准沿用于新版本。
 
 - 禁止写正文。
 - 禁止检索文献。

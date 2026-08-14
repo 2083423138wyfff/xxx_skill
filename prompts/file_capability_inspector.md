@@ -329,6 +329,13 @@ file_capability_report:
 
 ## 15. 禁止事项
 
+### 本轮新增硬规则：文本抽取能力
+
+- 禁止只检查 DOCX 生成能力而不检查参考资料文本抽取能力。
+- 必须输出 `file_text_extraction.docx_text_available`、`pdf_text_available`、`markdown_text_available`、`table_extraction_available` 和 `image_ocr_available`。
+- 当 `Reference Material Decomposer` 需要读取 DOCX、PDF、Markdown、表格或图片文字但对应能力不可用时，必须把限制写入 `missing_capabilities` 和 `degradation_rules`。
+- 禁止把不可读文件标记为可拆解成功。
+
 - 禁止生成 DOCX。
 - 禁止生成图片。
 - 禁止编造工具能力。

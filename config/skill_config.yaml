@@ -1,5 +1,5 @@
 skill_name: "xxx-skill"
-version: "0.2.0"
+version: "0.3.0"
 scope: "科研项目申请书多 Agent 生成、审查与交付"
 
 inputs:
@@ -63,6 +63,16 @@ human_review:
     - post_audit
   allow_user_disable: true
   require_override_record: true
+  forced_gates:
+    post_outline:
+      required: true
+      can_skip: false
+      blocks_before:
+        - SECTION_WRITING
+      approval_requires:
+        - OutlinePlan
+        - SectionAssignment
+        - LogicMap
 
 delivery:
   output_formats:
@@ -114,6 +124,36 @@ figure_prompt_policy:
     - both
   placement_decided_by: section_writer
   prompt_generated_by: figure_prompt_agent
+
+source_reuse_policy:
+  decomposition_agent: reference_material_decomposer
+  registry_schema: schemas/source_segment_registry.schema.json
+  assembly_plan_schema: schemas/source_segment_assembly_plan.schema.json
+  outline_revision_schema: schemas/outline_revision_request.schema.json
+  run_before:
+    - content_analyst
+    - outline_architect
+  old_proposal_whole_reuse_allowed: false
+  forbidden_old_context_defaults:
+    - old_project_title
+    - old_application_type
+    - old_research_object
+    - old_application_scenario
+    - old_budget
+    - old_indicators
+    - old_partners
+    - old_period
+    - old_management_arrangements
+    - unrelated_old_technical_route
+  conditionally_reusable_segments:
+    - team_basis
+    - principal_investigator_experience
+    - platform_condition
+    - prior_achievement
+    - dataset
+    - long_term_collaboration
+  require_user_confirmation_for_team_basis_reuse: true
+  templates_are_not_fact_sources: true
 
 file_qa_policy:
   required_after_delivery: true

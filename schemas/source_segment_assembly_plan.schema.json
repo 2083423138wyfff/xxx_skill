@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/source_segment_assembly_plan.schema.json",
+  "title": "SourceSegmentAssemblyPlan",
+  "type": "object",
+  "required": [
+    "artifact",
+    "target_project",
+    "selected_segments",
+    "excluded_segments",
+    "assembly_rules",
+    "output_mapping",
+    "reuse_confirmations_needed",
+    "status"
+  ],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "target_project": {
+      "type": "object",
+      "required": ["title", "theme"],
+      "properties": {
+        "title": { "type": "string" },
+        "theme": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "selected_segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "segment_id",
+          "source_id",
+          "source_location",
+          "original_heading",
+          "segment_role_in_new_project",
+          "reuse_mode",
+          "reuse_allowed",
+          "user_confirmed",
+          "must_remove",
+          "source_claim_ids"
+        ],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "source_id": { "type": "string" },
+          "source_location": { "type": "string" },
+          "original_heading": { "type": "string" },
+          "segment_role_in_new_project": {
+            "type": "string",
+            "enum": ["research_content", "technical_route", "team_basis", "output_plan", "background", "other"]
+          },
+          "reuse_mode": {
+            "type": "string",
+            "enum": ["facts_and_structure", "structure_only", "wording_style_only", "summarize_and_transform"]
+          },
+          "reuse_allowed": { "type": "boolean" },
+          "user_confirmed": { "type": "boolean" },
+          "must_remove": { "type": "array", "items": { "type": "string" } },
+          "source_claim_ids": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "excluded_segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "reason"],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assembly_rules": {
+      "type": "object",
+      "required": ["order", "merge_strategy", "conflict_policy", "terminology_policy", "old_context_policy"],
+      "properties": {
+        "order": { "type": "array", "items": { "type": "string" } },
+        "merge_strategy": {
+          "type": "string",
+          "enum": ["sequential_modules", "synthesize_common_logic", "compare_then_unify"]
+        },
+        "conflict_policy": { "type": "string", "enum": ["ask_user"] },
+        "terminology_policy": { "type": "string", "enum": ["normalize_to_target_project"] },
+        "old_context_policy": { "type": "string", "enum": ["strip_or_mark_unusable"] }
+      },
+      "additionalProperties": false
+    },
+    "output_mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_section_id", "use_segments", "forbidden_segments", "required_transition", "missing_logic_to_fill"],
+        "properties": {
+          "target_section_id": { "type": "string" },
+          "use_segments": { "type": "array", "items": { "type": "string" } },
+          "forbidden_segments": { "type": "array", "items": { "type": "string" } },
+          "required_transition": { "type": "boolean" },
+          "missing_logic_to_fill": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reuse_confirmations_needed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "question"],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "question": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_USER_INPUT", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": false
+}

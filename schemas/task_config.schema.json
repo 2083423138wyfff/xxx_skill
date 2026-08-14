@@ -13,7 +13,9 @@
     "output_formats",
     "human_review",
     "target_length",
-    "intake_question_set"
+    "intake_question_set",
+    "source_reuse",
+    "outline_gate"
   ],
   "properties": {
     "artifact": { "$ref": "./artifact.schema.json" },
@@ -45,6 +47,8 @@
     "research_scope": { "type": "string", "enum": ["web_search", "academic_db"] },
     "capability_snapshot": { "$ref": "./capability_snapshot.schema.json" },
     "file_capability_report_ref": { "type": ["string", "null"] },
+    "source_segment_registry_ref": { "type": ["string", "null"] },
+    "source_segment_assembly_plan_ref": { "type": ["string", "null"] },
     "output_formats": {
       "type": "array",
       "items": { "type": "string", "enum": ["markdown", "json", "docx"] },
@@ -120,6 +124,72 @@
       "properties": {
         "source": { "type": "string", "enum": ["user_template_and_user_data_only"] },
         "missing_behavior": { "type": "string", "enum": ["leave_blank_or_placeholder"] }
+      },
+      "additionalProperties": false
+    },
+    "source_reuse": {
+      "type": "object",
+      "required": [
+        "mode",
+        "old_proposal_present",
+        "multi_topic_materials_present",
+        "selected_segment_refs",
+        "team_basis_reuse_confirmation",
+        "forbidden_old_context_defaults"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["none", "old_proposal_rewrite", "multi_source_segment_assembly", "unresolved"]
+        },
+        "old_proposal_present": { "type": "boolean" },
+        "multi_topic_materials_present": { "type": "boolean" },
+        "selected_segment_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source_ref", "location_hint", "resolved_segment_id"],
+            "properties": {
+              "source_ref": { "type": "string" },
+              "location_hint": { "type": "string" },
+              "resolved_segment_id": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "team_basis_reuse_confirmation": {
+          "type": "string",
+          "enum": ["confirmed_same_team", "confirmed_user_authorized", "not_allowed", "unresolved"]
+        },
+        "forbidden_old_context_defaults": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "old_project_title",
+              "old_application_type",
+              "old_research_object",
+              "old_application_scenario",
+              "old_budget",
+              "old_indicators",
+              "old_partners",
+              "old_period",
+              "old_management_arrangements",
+              "unrelated_old_technical_route"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "outline_gate": {
+      "type": "object",
+      "required": ["post_outline_required", "can_skip", "approved_outline_version"],
+      "properties": {
+        "post_outline_required": { "type": "boolean", "const": true },
+        "can_skip": { "type": "boolean", "const": false },
+        "approved_outline_version": { "type": ["string", "null"] }
       },
       "additionalProperties": false
     },

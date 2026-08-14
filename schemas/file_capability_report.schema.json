@@ -6,6 +6,7 @@
   "required": [
     "artifact",
     "capabilities",
+    "file_text_extraction",
     "missing_capabilities",
     "degradation_rules",
     "status"
@@ -37,6 +38,24 @@
       "additionalProperties": false
     },
     "tool_evidence": { "type": "array", "items": { "type": "object" } },
+    "file_text_extraction": {
+      "type": "object",
+      "required": [
+        "docx_text_available",
+        "pdf_text_available",
+        "markdown_text_available",
+        "table_extraction_available",
+        "image_ocr_available"
+      ],
+      "properties": {
+        "docx_text_available": { "type": "boolean" },
+        "pdf_text_available": { "type": "boolean" },
+        "markdown_text_available": { "type": "boolean" },
+        "table_extraction_available": { "type": "boolean" },
+        "image_ocr_available": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "missing_capabilities": { "type": "array", "items": { "type": "string" } },
     "degradation_rules": { "type": "array", "items": { "type": "string" } },
     "status": { "type": "string", "enum": ["SUCCESS", "NEED_REVISION", "BLOCKED", "FAILED"] }

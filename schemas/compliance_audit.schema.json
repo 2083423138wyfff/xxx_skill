@@ -13,6 +13,8 @@
     "typography_issues",
     "layout_issues",
     "forbidden_markdown_style_found",
+    "source_reuse_audit",
+    "outline_gate_check",
     "audit_report_fields",
     "status"
   ],
@@ -42,6 +44,7 @@
             "type": "string",
             "enum": [
               "rerun_template_analyst",
+              "rerun_reference_material_decomposer",
               "rerun_outline_architect",
               "rerun_section_writer",
               "rerun_figure_prompt_agent",
@@ -62,6 +65,44 @@
     },
     "force_delivery_eligible": { "type": "boolean" },
     "blocking_reasons": { "type": "array", "items": { "type": "string" } },
+    "source_reuse_audit": {
+      "type": "object",
+      "required": [
+        "selected_segments_used",
+        "forbidden_segments_found",
+        "old_context_leakage",
+        "team_basis_reuse_confirmed",
+        "unresolved_reuse_risks"
+      ],
+      "properties": {
+        "selected_segments_used": { "type": "array", "items": { "type": "string" } },
+        "forbidden_segments_found": { "type": "array", "items": { "type": "object" } },
+        "old_context_leakage": { "type": "array", "items": { "type": "object" } },
+        "team_basis_reuse_confirmed": { "type": "boolean" },
+        "unresolved_reuse_risks": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "outline_gate_check": {
+      "type": "object",
+      "required": [
+        "post_outline_gate_present",
+        "outline_state",
+        "approved_outline_version",
+        "approved_section_assignments_version",
+        "approved_logic_map_version",
+        "writing_started_after_approval"
+      ],
+      "properties": {
+        "post_outline_gate_present": { "type": "boolean" },
+        "outline_state": { "type": "string", "enum": ["DRAFT", "PENDING_USER_REVIEW", "APPROVED_LOCKED", "REVISION_REQUESTED"] },
+        "approved_outline_version": { "type": ["string", "null"] },
+        "approved_section_assignments_version": { "type": ["string", "null"] },
+        "approved_logic_map_version": { "type": ["string", "null"] },
+        "writing_started_after_approval": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "audit_report_fields": {
       "type": "object",
       "required": [

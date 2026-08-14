@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/xxx-skill/schemas/outline_revision_request.schema.json",
+  "title": "OutlineRevisionRequest",
+  "type": "object",
+  "required": ["artifact", "requested_changes", "clarification_questions", "status"],
+  "properties": {
+    "artifact": { "$ref": "./artifact.schema.json" },
+    "requested_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["change_type", "target", "user_instruction", "requires_upstream_rerun", "target_agent"],
+        "properties": {
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "reorder_section",
+              "merge_section",
+              "split_section",
+              "remove_section",
+              "add_missing_element",
+              "change_emphasis",
+              "update_segment_mapping",
+              "update_reuse_policy",
+              "update_template_requirement",
+              "update_target_theme"
+            ]
+          },
+          "target": { "type": "string" },
+          "user_instruction": { "type": "string" },
+          "requires_upstream_rerun": { "type": "boolean" },
+          "target_agent": {
+            "type": "string",
+            "enum": [
+              "Outline Architect",
+              "Content Analyst",
+              "Reference Material Decomposer",
+              "Template Analyst",
+              "Intake Agent"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "clarification_questions": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["SUCCESS", "NEED_USER_INPUT", "NEED_REVISION", "BLOCKED", "FAILED"] }
+  },
+  "additionalProperties": false
+}
