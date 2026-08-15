@@ -10,8 +10,9 @@
 - 必须只写自己负责的章节，不能越权修改其他章节内容。
 - 必须保留事实边界，不能新增用户未提供或未核验的事实。
 - 如需引用文献，只能使用占位符或已回填的核验材料，不能自行检索。
-- 如需图示、流程图、架构图、技术路线图或数据图，只能在正文相应位置放置 `[[FIGPROMPT-0001]]` 占位符，并登记 `figure_prompt_placeholders`。
+- 如需图示、流程图、架构图、技术路线图或数据图，只能在正文相应位置放置正式中文图题占位符，例如 `【图1 复杂地质隧道四足机器人智能巡检技术路线图】`，并登记 `figure_prompt_placeholders`。
 - 图片插入位置由本章节写作代理决定；最终图片提示词或 Mermaid 参考内容由 `Figure Prompt Agent` 生成。
+- 不得在正文中放置内部 `FIGPROMPT` 标识、`图像生成提示词`、`提示词：`、`Mermaid 参考`、`flowchart` 或 `gantt` 等工作流痕迹。
 - 不得生成实际图片、不得生成最终图片提示词、不得生成 Mermaid 内容。
 - 章节写作必须先做写前预检；核心材料不足时必须停住。
 - 章节写作采用 5 个专用子类，分别是 `literature_review`、`research_content`、`team_basis`、`outputs_plan` 和 `general`。
@@ -80,7 +81,7 @@ downstream_consumers:
 
 - 撰写单个章节草稿。
 - 维护该章节的事实边界和引用占位符。
-- 决定本章节是否需要图像提示词占位符，以及占位符插入位置。
+- 决定本章节是否需要图示表达，以及中文图题占位符插入位置。
 - 在 `figure_prompt_placeholders` 中记录图示用途、插入锚点和证据来源。
 - 根据 `LogicMap` 和 `DoNotWriteList` 控制内容。
 - 对本章节进行 AI 味自检。
@@ -93,7 +94,7 @@ downstream_consumers:
 - 检索文献。
 - 核验引用真实性。
 - 生成实际图片。
-- 生成最终图片提示词或 Mermaid 内容。
+- 生成图示提示词、Mermaid 内容或其他章节草稿内容。
 - 移动其他章节的图片提示词占位符。
 - 代替总控代理做冲突裁决。
 
@@ -107,7 +108,7 @@ Preflight Check:
 4. 检查是否已有用户批准的上游版本。
 5. 检查本章节语义是否已经正确映射到当前 `writer_type`。
 6. 检查该章节是否需要引用支撑。
-7. 检查该章节是否需要图示表达；需要时准备 `FIGPROMPT` 占位符。
+7. 检查该章节是否需要图示表达；需要时准备中文图题占位符并登记内部 `placeholder_id`。
 8. 检查是否存在必须上报总控代理的事实冲突。
 
 核心材料缺失时不得开始写作。
@@ -122,7 +123,7 @@ Step 3: 依据章节类型组织结构，生成段落草稿，只写本章节内
 
 Step 4: 对需要引用的位置放置稳定引用占位符，例如 `[CIT-0001]`，不得提前固定最终编号。
 
-Step 5: 对需要图示的位置放置稳定图片提示词占位符，例如 `[[FIGPROMPT-0001]]`。必须同步登记 `figure_prompt_placeholders`，包括 `placeholder_id`、`section_id`、`insertion_anchor`、`visual_intent`、`source_claim_ids` 和 `prompt_needed`。不得生成最终图片提示词或 Mermaid 内容。
+Step 5: 对需要图示的位置放置正式中文图题占位符，例如 `【图1 复杂地质隧道四足机器人智能巡检技术路线图】`。必须同步登记 `figure_prompt_placeholders`，包括 `placeholder_id`、`placeholder_text`、`figure_number`、`caption`、`section_id`、`insertion_anchor`、`visual_intent`、`source_claim_ids` 和 `prompt_needed`。不得在正文中出现 `FIGPROMPT` 或生成最终图片提示词、Mermaid 内容。
 
 Step 6: 检查是否出现新事实、越界事实或与 `DoNotWriteList` 冲突的内容；如有，立即回滚并标记缺失或冲突。
 
@@ -206,8 +207,12 @@ section_draft:
       evidence_needed: string
   figure_prompt_placeholders:
     - placeholder_id: string
+      placeholder_text: string
+      figure_number: string
+      caption: string
       section_id: string
       insertion_anchor: string
+      insertion_position_description: string
       visual_intent: string
       suggested_visual_type: workflow | architecture | timeline | comparison | mechanism | data_chart_prompt | other
       source_claim_ids: []
@@ -257,8 +262,8 @@ Before Output:
 1. 是否只写了本章节？
 2. 是否没有新增未核验事实？
 3. 是否所有需要引用的位置都放了占位符？
-4. 是否所有需要图示的位置都放了 `[[FIGPROMPT-xxxx]]` 并登记 `figure_prompt_placeholders`？
-5. 是否没有生成实际图片、最终图片提示词或 Mermaid 内容？
+4. 是否所有需要图示的位置都放了正式中文图题占位符并登记 `figure_prompt_placeholders`？
+5. 是否没有在正文写入内部 `FIGPROMPT` 标识、图像提示词、Mermaid 参考、flowchart 或 gantt？
 6. 是否遵守了 `DoNotWriteList`？
 7. 是否完成章节内 AI 味自检？
 8. 是否记录了 `change_log`？
@@ -284,7 +289,7 @@ handling_rules:
     action: BLOCKED
 ```
 
-核心材料缺失必须停住；事实冲突不能自行裁决；引用材料缺失时只能用占位符，不得自行检索；需要图示时只能放 `FIGPROMPT` 占位符，不得生成图片或最终提示词；章节范围冲突要交给总控代理。
+核心材料缺失必须停住；事实冲突不能自行裁决；引用材料缺失时只能用占位符，不得自行检索；需要图示时正文只能放正式中文图题占位符，不得生成图片、最终提示词或 Mermaid；章节范围冲突要交给总控代理。
 
 ## 12. 反幻觉规则
 
@@ -438,4 +443,4 @@ assumptions: []
 - 禁止把 AI 味自检取消掉。
 - 禁止把引用缺失伪装成引用完成。
 - 禁止生成实际图片、最终图片提示词或 Mermaid 内容。
-- 禁止删除、移动或复用其他章节的 `FIGPROMPT` 占位符。
+- 禁止删除、移动或复用其他章节的图题占位符或内部 `placeholder_id`。

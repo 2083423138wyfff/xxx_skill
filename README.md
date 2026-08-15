@@ -9,8 +9,8 @@ Works best with Kimi, especially in environments with real multi-agent support.
 科研项目申请书多 Agent 生成 skill。  
 Multi-agent skill for Chinese research proposal drafting, review, and delivery.
 
-它面向低门槛输入场景：用户提供项目标题或研究主题、参考资料，可选提供模板；系统完成能力检测、输入对齐、模板解析、内容分析、大纲设计、分章节写作、图像提示词生成、联网文献检索与回填、整合、引用核验、全文 AI 味审查、合规审查、交付和最终文件 QA。
-It is built for low-friction inputs: users provide a project title or research topic, reference materials, and optionally a template; the system handles capability inspection, intake alignment, template analysis, content analysis, outline design, section writing, figure prompt generation, online literature search and backfill, integration, citation verification, full-document AI-style review, compliance audit, delivery, and final file QA.
+它面向低门槛输入场景：用户提供项目标题或研究主题、参考资料，可选提供模板；系统完成能力检测、输入对齐、模板解析、内容分析、大纲设计、分章节写作、图像提示词生成、联网文献检索与回填、整合、引用核验、全文 AI 味审查、合规审查、交付和最终文件 QA，并额外生成单独的图示提示词 Word 文件。
+It is built for low-friction inputs: users provide a project title or research topic, reference materials, and optionally a template; the system handles capability inspection, intake alignment, template analysis, content analysis, outline design, section writing, figure prompt generation, online literature search and backfill, integration, citation verification, full-document AI-style review, compliance audit, delivery, final file QA, and a separate Word file for figure prompts.
 
 It also supports old-proposal rewriting and multi-source segment assembly. When users ask to reuse parts of an existing proposal, or combine selected sections from several files, the workflow first decomposes materials into traceable source segments, asks for unresolved reuse authorization, and blocks writing until the outline is explicitly approved.
 
@@ -22,8 +22,8 @@ It also supports old-proposal rewriting and multi-source segment assembly. When 
   Literature search must use network access; without online or academic database access, formal references must not be generated.
 - 正式支持 Markdown、JSON、DOCX。  
   Markdown, JSON, and DOCX are the supported delivery formats.
-- 不生成实际图片；需要图示时，只在原位置输出图片生成提示词或 Mermaid 参考内容。
-  Actual images are not generated; when visuals are needed, the skill outputs image prompts or Mermaid references at the original positions.
+- 不生成实际图片；需要图示时，正式正文只保留中文图题占位符，图片生成提示词和 Mermaid 参考内容写入单独的图示提示词 Word 文件。
+  Actual images are not generated; when visuals are needed, the main document keeps only Chinese figure-title placeholders, while image prompts and Mermaid references go into a separate Word file.
 - Markdown 是最终交付和格式转换的唯一正文源。  
   Markdown is the single source of truth for final delivery and format conversion.
 - 不支持多 Agent 架构时，必须先让用户选择接受降级或取消任务。  

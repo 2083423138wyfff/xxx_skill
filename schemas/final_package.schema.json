@@ -16,6 +16,8 @@
     "outline_review_packet_id",
     "reference_list_json",
     "figure_prompts_json",
+    "figure_prompt_document_docx",
+    "figure_prompt_document_validation",
     "docx_validation",
     "markdown_style_validation",
     "assumptions_md",
@@ -52,19 +54,20 @@
     },
     "figure_prompts_json": {
       "type": "object",
-      "required": ["figure_prompt_plan_id", "embedded_prompt_blocks", "actual_images_generated"],
+      "required": ["figure_prompt_plan_id", "main_document_placeholders", "actual_images_generated"],
       "properties": {
         "figure_prompt_plan_id": { "type": ["string", "null"] },
-        "embedded_prompt_blocks": {
+        "main_document_placeholders": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["placeholder_id", "section_id", "insertion_anchor", "inserted", "output_type"],
+            "required": ["placeholder_id", "placeholder_text", "section_id", "insertion_anchor", "present_in_main_document", "output_type"],
             "properties": {
               "placeholder_id": { "type": "string" },
+              "placeholder_text": { "type": "string" },
               "section_id": { "type": "string" },
               "insertion_anchor": { "type": "string" },
-              "inserted": { "type": "boolean" },
+              "present_in_main_document": { "type": "boolean" },
               "output_type": { "type": "string", "enum": ["image_prompt", "mermaid_reference", "both"] }
             },
             "additionalProperties": false
@@ -75,6 +78,29 @@
       "additionalProperties": false
     },
     "main_document_docx": { "type": ["string", "null"] },
+    "figure_prompt_document_docx": { "type": ["string", "null"] },
+    "figure_prompt_document_validation": {
+      "type": "object",
+      "required": ["requested", "generated", "valid", "checks", "failure_reason"],
+      "properties": {
+        "requested": { "type": "boolean" },
+        "generated": { "type": "boolean" },
+        "valid": { "type": "boolean" },
+        "checks": {
+          "type": "object",
+          "properties": {
+            "all_figures_listed": { "type": "string" },
+            "insertion_positions": { "type": "string" },
+            "prompt_texts": { "type": "string" },
+            "mermaid_references": { "type": "string" },
+            "no_actual_image_claims": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "failure_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "docx_validation": {
       "type": "object",
       "required": ["requested", "generated", "valid", "checks", "failure_reason"],

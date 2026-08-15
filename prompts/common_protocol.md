@@ -10,8 +10,8 @@
 - 正式输出格式只支持 Markdown、JSON、DOCX。
 - 文献检索必须联网；不能联网时不得生成正式参考文献。
 - AI 味审查不允许跳过。
-- 本 Skill 不生成实际图片；有图示需求时，只能生成图片生成提示词或 Mermaid 参考内容。
-- 图片提示词插入位置由章节写作代理决定，任何下游代理不得新增、移动或删除该位置。
+- 本 Skill 不生成实际图片；有图示需求时，正式正文只保留中文图题占位符，图片生成提示词和 Mermaid 参考内容必须进入单独 Word 文件 `figure_prompt_document.docx`。
+- 图片位置由章节写作代理决定，任何下游代理不得新增、移动或删除该位置；正文占位符格式必须类似 `【图1 复杂地质隧道四足机器人智能巡检技术路线图】`。
 - 附件只接收用户提供；用户未提供时只能留空或占位，不得编造附件内容。
 - 表格必须来自用户模板和用户数据；没有模板或数据时只能留空或占位，不得编造表格内容。
 - 用户在降级确认或人工审核节点取消任务时，进入 `CANCELLED_BY_USER`，不得继续写作、检索或交付。
@@ -250,6 +250,7 @@ artifact:
 - `SectionAssignment`
 - `SectionDraft`
 - `FigurePromptPlan`
+- `FigurePromptDocument`
 - `CitationSearchPlan`
 - `CitationDatabase`
 - `ReferenceList`
@@ -317,25 +318,25 @@ change:
 
 ## 图片提示词协议
 
-本 Skill 不生成图片文件。涉及图、流程图、架构图、技术路线图、示意图时，必须使用 `FigurePromptPlan` 管理。
+本 Skill 不生成图片文件。涉及图、流程图、架构图、技术路线图、示意图时，必须使用 `FigurePromptPlan` 管理，并由交付代理生成单独的图示提示词 Word 文件。
 
 硬规则：
 
-- 章节写作代理决定图像提示词插入位置，并在 `SectionDraft.figure_prompt_placeholders` 中登记。
-- 章节写作代理只放置 `[[FIGPROMPT-0001]]` 等稳定占位符和视觉意图，不生成最终图片提示词。
+- 章节写作代理决定图示插入位置，并在正文对应位置只放中文图题占位符，例如 `【图1 复杂地质隧道四足机器人智能巡检技术路线图】`。
+- 章节写作代理必须在 `SectionDraft.figure_prompt_placeholders` 中登记内部 `placeholder_id`、正文 `placeholder_text`、插入锚点和视觉意图，不生成最终图片提示词。
 - `Figure Prompt Agent` 只读取已存在的 `figure_prompt_placeholders`，生成图片生成提示词或 Mermaid 参考内容。
 - `Figure Prompt Agent` 不得新增、删除、移动插入位置。
-- 整合、AI 味审查、合规审查和交付代理必须保留 `FIGPROMPT` 锚点。
-- 最终正文原图片位置使用固定块：
+- 整合、AI 味审查、合规审查和交付代理必须保留正文中文图题占位符和 `FigurePromptPlan` 中的插入位置映射。
+- 最终正文原图片位置只允许出现正式图题占位符：
 
 ```text
-【图像生成提示词 FIGPROMPT-0001】
-用途：……
-提示词：……
-Mermaid 参考：……
+【图1 复杂地质隧道四足机器人智能巡检技术路线图】
 ```
 
+- `figure_prompt_document.docx` 必须逐图包含：图号和图名、正文占位符、应插入位置、用途、生成提示词、Mermaid 建议、事实来源或限制说明。
+- `figure_prompt_document.docx` 是辅助交付文件，不是正式申报书正文；不得把其中的提示词、Mermaid 代码或内部 `FIGPROMPT` 标识复制进 `main_document.docx` 或最终 Markdown 正文。
 - 不得把图片提示词描述成“已生成图片”或“已插入图片”。
+- 若用户明确要求“工作稿带提示词”，必须另行生成工作稿并标注不可直接提交，仍不得污染正式提交稿。
 - 图片提示词不能伪造文献支撑、团队成果、实验数据或用户未提供的视觉素材。
 
 ## DOCX 格式协议
@@ -370,7 +371,8 @@ DOCX 格式必须由独立 `DocxFormatProfile` 承载，不能只写在自然语
 - DOCX 是否可生成、可打开、可渲染。
 - Markdown 与 DOCX 内容是否一致。
 - 引用编号是否一致。
-- `FIGPROMPT` 占位符与 `FigurePromptPlan` 是否一一对应。
+- 正式正文中的中文图题占位符与 `FigurePromptPlan` 是否一一对应。
+- `figure_prompt_document.docx` 是否存在、可打开，并逐图包含图名、位置、生成提示词和 Mermaid 建议。
 - 字体、字号、行距、页边距、标题、图题、表题、表格和页眉页脚是否符合 `DocxFormatProfile`。
 
 QA 失败时不得标记 `READY_FOR_DELIVERY`；只能进入 `DELIVERED_WITH_WARNINGS`、`NEED_REVISION` 或 `BLOCKED`。

@@ -14,7 +14,7 @@ description: Use when generating, rewriting, auditing, and delivering Chinese re
 
 ## 能力声明
 
-本 Skill 根据用户提供的项目标题、参考资料和可选内容模板/DOCX 格式模板，生成科研项目申请书。系统默认启用人工审核，使用多 Agent 协作完成文件能力检测、输入对齐、模板解析、内容分析、大纲设计、章节写作、图像提示词生成、联网文献检索、正文整合、引用核验、全文 AI 味审查、合规审查、Markdown/JSON/DOCX 交付和最终文件 QA。
+本 Skill 根据用户提供的项目标题、参考资料和可选内容模板/DOCX 格式模板，生成科研项目申请书。系统默认启用人工审核，使用多 Agent 协作完成文件能力检测、输入对齐、模板解析、内容分析、大纲设计、章节写作、图像提示词生成、联网文献检索、正文整合、引用核验、全文 AI 味审查、合规审查、Markdown/JSON/DOCX 交付、图示提示词 Word 文件交付和最终文件 QA。
 
 当用户提供旧本子、多主题资料，或指定“文件1第2个研究内容 + 文件2第1个研究内容”这类片段组合时，必须先由 `Reference Material Decomposer` 生成 `SourceSegmentRegistry` 和 `SourceSegmentAssemblyPlan`。旧项目标题、旧预算、旧指标、旧合作单位和未选片段默认不得迁移；团队基础复用必须确认团队/单位/负责人一致或获得用户明确授权。
 
@@ -114,14 +114,14 @@ FinalPackage:
 | Template Analyst | 用户内容模板解析、内置模板匹配、TemplateProfile 和 DocxFormatProfile 生成 |
 | Content Analyst | 从用户资料提取研究问题、目标、方法、基础和指标 |
 | Outline Architect | 设计章节结构、写作分工、LogicMap、DoNotWriteList |
-| Section Writer(s) | 按章节写作正文，保留引用占位符并决定 FIGPROMPT 插入位置 |
+| Section Writer(s) | 按章节写作正文，保留引用占位符并决定中文图题占位符插入位置 |
 | Figure Prompt Agent | 只根据章节占位生成图像生成提示词或 Mermaid 参考内容，不生成图片 |
 | Literature Search Backfill | 联网检索真实文献，生成引用数据库和参考文献列表 |
 | Integrator | 整合章节、统一术语和逻辑衔接 |
 | Citation Verifier | 核验引用真实性、正文支撑关系和参考文献格式 |
 | Full Document AI Style Auditor | 审查并降低全文 AI 味，不改变事实和引用关系 |
 | Compliance Auditor | 检查模板、篇幅、必填项、LogicMap 和交付就绪度 |
-| Delivery Agent | 组装 Markdown/JSON/DOCX 交付包 |
+| Delivery Agent | 组装 Markdown/JSON/DOCX 交付包，并生成图示提示词 Word 文件 |
 | Final File QA Agent | 检查最终文件存在性、可打开性、JSON 解析、DOCX 渲染和内容一致性 |
 | Human Gate | 人工审核、降级确认、强制交付确认和取消任务记录 |
 

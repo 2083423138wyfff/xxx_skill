@@ -10,8 +10,9 @@
 - 该阶段不允许跳过。
 - 只允许改表达，不允许改事实。
 - 不得改变引用锚点、引用编号、章节结构和逻辑链。
-- 不得改变、删除、移动或改写 `FIGPROMPT` 锚点和图像提示词块。
+- 不得改变、删除、移动或改写正文中的中文图题占位符和 `FigurePromptPlan` 插入位置映射。
 - 改写不得引入斜体、加粗、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接、Mermaid 图、ASCII 图示或装饰性图示。
+- 必须执行 AI/流程残留扫描；正式正文不得出现 `FIGPROMPT`、`图像生成提示词`、`提示词：`、`Mermaid 参考`、`flowchart`、`gantt`、`素材`、`原素材`、`联网核验`、`按规则`、`本表`、`上游产物`、`占位符`、`用户未提供`、`待补`、`待核实` 等生成过程或编辑过程痕迹。
 - 修改后必须再次输出审查结果和修改说明。
 - 如果任何改写影响引用锚点，必须返回 `NEED_REVISION`，并要求回到 `Citation Verifier`。
 - 只有 `status: SUCCESS`、`changed_facts: false`、`changed_citation_anchors: false`、`changed_section_structure: false` 时，才允许进入 `Compliance Auditor`。
@@ -77,7 +78,7 @@ downstream_consumers:
 - 不新增事实、数据、预算、团队成果或合作单位。
 - 不改变章节结构。
 - 不改变引用锚点或引用关系。
-- 不改变 `FIGPROMPT` 锚点、图像提示词块或 Mermaid 参考内容。
+- 不改变正文中的中文图题占位符、图题编号、插入位置或 `FigurePromptPlan` 映射。
 - 不做模板合规审查。
 - 不压缩字数。
 - 不检查 DOCX、字体、行距、页码或排版。
@@ -90,7 +91,7 @@ Preflight Check:
 
 1. 检查 `IntegratedDraft` 是否存在且有效。
 2. 检查 `CitationVerificationReport.overall_pass` 是否为 `true`。
-3. 检查正文中引用锚点和 `FIGPROMPT` 锚点是否稳定。
+3. 检查正文中引用锚点和中文图题占位符是否稳定。
 4. 检查是否存在上游已标记的事实冲突。
 5. 检查是否有足够信息判断表达问题而不改变事实。
 6. 检查本阶段是否被错误跳过；如被跳过必须返回 `BLOCKED`。
@@ -109,9 +110,11 @@ Step 4: 按固定阈值判定是否需要改写：`score >= 80` 且无事实、�
 
 Step 5: 若 `rewrite_needed: true`，只允许执行以下轻度表达改写：替换空泛词、拆解机械排比、减少重复句式、增强已有项目对象/场景/方法/约束的表达。禁止新增指标、改变主谓宾事实关系、移动引用、删除引用附近关键论断、重排段落或章节。
 
-Step 6: 改写后必须再次评分并比对原文，检查是否改变事实、删除证据、移动引用锚点、移动 `FIGPROMPT` 锚点、改变章节结构或改变逻辑链。
+Step 6: 改写后必须再次评分并比对原文，检查是否改变事实、删除证据、移动引用锚点、移动中文图题占位符、改变章节结构或改变逻辑链。
 
-Step 7: 扫描改写后正文，确认没有新增斜体、加粗、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接、正文 Mermaid 图、ASCII 图示或装饰性图示。`FigurePromptPlan` 对应的 Mermaid 参考内容不得改写；无法安全保留时返回 `NEED_REVISION`。
+Step 7: 扫描改写后正文，确认没有新增斜体、加粗、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接、正文 Mermaid 图、ASCII 图示或装饰性图示。正式正文不得包含图像提示词、Mermaid 参考内容或 AI/流程残留；这些内容只能存在于后续交付代理生成的 `figure_prompt_document.docx` 中。
+
+Step 7.1: 对正式正文执行 AI/流程残留黑名单检查，至少包含：`FIGPROMPT`、`图像生成提示词`、`提示词：`、`Mermaid 参考`、`flowchart`、`gantt`、`素材`、`原素材`、`联网核验`、`按规则`、`本表`、`上游产物`、`审查报告`、`生成过程`、`用户未提供`、`待补`、`待核实`。命中时必须记录位置、原文、处理建议，并返回 `NEED_REVISION`，不得返回 `SUCCESS`。
 
 Step 8: 如果改写改变了事实、引用锚点、章节结构或逻辑链，返回 `NEED_REVISION`，不得放行。
 
@@ -128,7 +131,7 @@ status_rules:
       - 必要轻度改写已完成
       - 未改变事实
       - 未改变引用锚点
-      - 未改变 `FIGPROMPT` 锚点
+      - 未改变中文图题占位符
       - 未改变章节结构
       - 未新增斜体、加粗、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接或图示
   NEED_USER_INPUT:
@@ -138,7 +141,7 @@ status_rules:
   NEED_REVISION:
     when:
       - 改写后影响引用锚点
-      - 改写后影响 `FIGPROMPT` 锚点或图像提示词块
+      - 改写后影响中文图题占位符或图示位置映射
       - 改写后改变事实或逻辑
       - 改写后新增斜体、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接或图示且无法安全移除
       - score < 60 且无法安全改写
@@ -255,7 +258,8 @@ Before Output:
 5. 是否没有改变引用锚点？
 6. 是否没有改变章节结构？
 7. 是否没有新增斜体、加粗、彩色文字、横线分隔符、原始 HTML/CSS、Markdown 链接或图示？
-8. 是否输出了修改说明和 `change_log`？
+8. 是否已经扫描 AI/流程残留并确认正式正文无残留？
+9. 是否输出了修改说明和 `change_log`？
 
 自检失败时不得返回 `SUCCESS`。
 
@@ -458,7 +462,7 @@ full_document_ai_style_audit:
 
 ### 本轮新增硬规则：不得破坏片段追踪
 
-- 禁止修改 `segment_id`、`source_refs`、`FIGPROMPT` 锚点、引用锚点或章节-片段映射。
+- 禁止修改 `segment_id`、`source_refs`、中文图题占位符、引用锚点或章节-片段映射。
 - 禁止把旧项目上下文、未选片段或禁止迁移片段通过“润色”方式重新写入正文。
 - AI 味修改只能改表达，不能改事实、指标、预算、合作单位、团队成果、引用关系和大纲边界。
 - 如果表达修改会改变引用锚点或片段来源锚点，必须返回 `NEED_REVISION`，由总控代理回溯引用核验和相关审查。
