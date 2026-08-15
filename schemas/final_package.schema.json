@@ -21,6 +21,7 @@
     "assumptions_md",
     "audit_report_json",
     "summary_md",
+    "final_submission_notice",
     "manifest_json",
     "generated_at",
     "task_version",
@@ -118,6 +119,7 @@
     "assumptions_md": { "type": "string" },
     "audit_report_json": { "type": "object" },
     "summary_md": { "type": "string" },
+    "final_submission_notice": { "type": "string", "minLength": 1 },
     "manifest_json": {
       "type": "object",
       "required": ["task_version", "generated_at", "unsupported_formats", "files"],

@@ -18,6 +18,8 @@ description: Use when generating, rewriting, auditing, and delivering Chinese re
 
 当用户提供旧本子、多主题资料，或指定“文件1第2个研究内容 + 文件2第1个研究内容”这类片段组合时，必须先由 `Reference Material Decomposer` 生成 `SourceSegmentRegistry` 和 `SourceSegmentAssemblyPlan`。旧项目标题、旧预算、旧指标、旧合作单位和未选片段默认不得迁移；团队基础复用必须确认团队/单位/负责人一致或获得用户明确授权。
 
+生成产物仅供起草和审阅参考，不可直接作为最终提交文件；提交前必须由用户逐项核对事实、引用、格式、附件和合规要求，并完成必要修改。
+
 ## 运行入口硬规则
 
 使用本 Skill 时必须先读取并遵守 `prompts/common_protocol.md` 和 `prompts/dispatcher.md`，不得直接进入写作、检索、审查或交付。

@@ -375,6 +375,16 @@ DOCX 格式必须由独立 `DocxFormatProfile` 承载，不能只写在自然语
 
 QA 失败时不得标记 `READY_FOR_DELIVERY`；只能进入 `DELIVERED_WITH_WARNINGS`、`NEED_REVISION` 或 `BLOCKED`。
 
+## 最终提交提醒
+
+所有最终交付摘要、最终用户回复和 `summary.md` 必须包含以下固定提醒，不得删改为更弱表达：
+
+```text
+重要提示：本 skill 生成的 Markdown、JSON、DOCX 等产物仅供起草和审阅参考，不可直接作为最终提交文件；提交前请务必逐项核对事实、引用、格式、附件和合规要求，并完成必要修改。
+```
+
+该提醒不改变交付状态，不替代 `ComplianceAudit`、`FinalFileQAReport` 或用户人工审核。
+
 ## 降级协议
 
 - 完整能力需要支持多 Agent 的 SDK 或运行环境。

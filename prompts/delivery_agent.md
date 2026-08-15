@@ -319,6 +319,7 @@ final_package:
     force_delivery_used: true | false
     format_warnings: []
   summary_md: string
+  final_submission_notice: string
   manifest_json:
     task_version: string
     generated_at: ISO8601
@@ -818,6 +819,17 @@ final_package:
 ```
 
 ## 15. 禁止事项
+
+### 最终提交提醒
+
+- `FinalPackage.summary_md`、`audit_report_json` 和最终交付摘要必须包含以下固定文本：
+
+```text
+重要提示：本 skill 生成的 Markdown、JSON、DOCX 等产物仅供起草和审阅参考，不可直接作为最终提交文件；提交前请务必逐项核对事实、引用、格式、附件和合规要求，并完成必要修改。
+```
+
+- 交付代理完成调用时，必须把这句话作为最终用户可见输出的一部分。
+- 这句话不得被替换成“可以直接提交”“已完全通过”或其他弱化表达。
 
 ### 本轮新增硬规则：交付追踪
 
